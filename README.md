@@ -32,17 +32,6 @@
 主题会加载 `/vendor/flag-icons.min.css`（国旗样式）与 `/flags/**/*.svg`（国旗图片）。
 **反代 / WAF 规则不要把 `/vendor/` 整目录拦掉**。
 
-## 标签页标题
-
-标题由站名（`GET /api/me` 的 `site_name`）驱动，不再从主题名跳到站名：
-
-- `public/nezha-title-probe.js`（独立文件，避开 CSP）在入口包之前先贴 `localStorage` 里上次的站名；冷启动无缓存时才自己早问一次 `/api/me`。
-- Header 拿到数据后只写一次真站名，并置 `window.__titleOwned`：那条早问的迟到响应据此退让。
-- 静态 `<title>` 沿用上游那句（与 Header 里的兜底值同值），不在加载期做第三次改写。
-
-验收：`node tools/verify_title.mjs ['站名'] [baseUrl]`——不给 `baseUrl` 就在本机伺服 `dist/`（含请求计数与迟到响应两项），给了就直接打在真 hub 上。
-
-
 ## 许可
 
 Apache-2.0，继承自[上游仓库](https://github.com/hamster1963/nezha-dash-v2)；本项目为其移植版本，原项目版权归原作者 hamster1963 所有。
