@@ -65,6 +65,20 @@ const getStoredLanguage = () => {
 	return localStorage.getItem("language") || "en-US";
 };
 
+/**
+ * 让 <html lang> 跟着界面语言走。
+ *
+ * 为什么必须：`index.html` 里写死的是 `lang="en"`，而站长把默认语言设成简体中文之后
+ * 页面正文全是中文、语言标记却还是 en —— 读屏软件会按英语朗读、浏览器翻译会判定
+ * 「已经是英语了」而不提供翻译、搜索引擎也会按英语索引。
+ * 顺带把 i18next 的 `pt_BR` 这类写法归一成 BCP-47 的 `pt-BR`。
+ */
+const applyHtmlLang = (lng) => {
+	if (typeof document === "undefined" || !document.documentElement) return;
+	const tag = String(lng || "").replace(/_/g, "-");
+	if (tag) document.documentElement.lang = tag;
+};
+
 i18n.use(initReactI18next).init({
 	resources,
 	lng: getStoredLanguage(), // 使用localStorage中存储的语言或默认值
@@ -74,9 +88,12 @@ i18n.use(initReactI18next).init({
 	},
 });
 
+applyHtmlLang(i18n.language);
+
 // 添加语言改变时的处理函数
 i18n.on("languageChanged", (lng) => {
 	localStorage.setItem("language", lng);
+	applyHtmlLang(lng);
 });
 
 export default i18n;
