@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { ImageMinus } from "lucide-react";
-import { DateTime } from "luxon";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -28,22 +27,19 @@ interface TimeState {
 	ss: number;
 }
 
+// 本地时间的三段数字。原先用 luxon 的 DateTime.now().hour/minute/second，
+// 而 setLocale 只影响格式化、对这三个取值毫无作用 —— 为了页头那个时钟，
+// 整个 luxon（69KB / gzip 22KB）被挂在首屏关键路径上。原生 Date 取值完全等价。
+const nowTimeState = (): TimeState => {
+	const now = new Date();
+	return { hh: now.getHours(), mm: now.getMinutes(), ss: now.getSeconds() };
+};
+
 const useCurrentTime = () => {
-	const [time, setTime] = useState<TimeState>({
-		hh: DateTime.now().setLocale("en-US").hour,
-		mm: DateTime.now().setLocale("en-US").minute,
-		ss: DateTime.now().setLocale("en-US").second,
-	});
+	const [time, setTime] = useState<TimeState>(nowTimeState);
 
 	useEffect(() => {
-		const intervalId = setInterval(() => {
-			const now = DateTime.now().setLocale("en-US");
-			setTime({
-				hh: now.hour,
-				mm: now.minute,
-				ss: now.second,
-			});
-		}, 1000);
+		const intervalId = setInterval(() => setTime(nowTimeState()), 1000);
 
 		return () => clearInterval(intervalId);
 	}, []);

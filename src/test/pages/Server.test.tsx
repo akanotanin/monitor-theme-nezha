@@ -485,7 +485,8 @@ describe("Servers page", () => {
 			".server-overview-controls section > button",
 		);
 		await user.click(controls[0]);
-		expect(screen.getByTestId("global-map")).toHaveTextContent("2");
+		// 地图现在是 lazy() 的异步 chunk，得等它解析完（改造前是同步 import）
+		expect(await screen.findByTestId("global-map")).toHaveTextContent("2");
 		expect(localStorage.getItem("showMap")).toBe("1");
 
 		await user.click(controls[1]);

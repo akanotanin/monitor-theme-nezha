@@ -2,7 +2,7 @@
   "name": "Monitor Nezha",
   "short": "nezha-dash",
   "description": "极简探针（Monitor）的哪吒监控风格前端，前身来自 hamster1963/nezha-dash-v2。",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "author": "移植到 Monitor by akanotanin",
   "url": "https://github.com/akanotanin/monitor-theme-nezha-dash",
   "config": [

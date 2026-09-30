@@ -8,15 +8,15 @@ import {
 	ViewColumnsIcon,
 } from "@heroicons/react/20/solid";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import GlobalMap from "@/components/GlobalMap";
 import GroupSwitch from "@/components/GroupSwitch";
 import { Loader } from "@/components/loading/Loader";
 import ServerCard from "@/components/ServerCard";
 import ServerCardInline from "@/components/ServerCardInline";
 import ServerOverview from "@/components/ServerOverview";
 import { ServiceTracker } from "@/components/ServiceTracker";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SORT_TYPES } from "@/context/sort-context";
 import { useSort } from "@/hooks/use-sort";
 import { useStatus } from "@/hooks/use-status";
@@ -24,6 +24,13 @@ import { useWebSocketContext } from "@/hooks/use-websocket-context";
 import { fetchServerGroup, fetchService } from "@/lib/nezha-api";
 import { cn } from "@/lib/utils";
 import type { NezhaServer, ServerGroup } from "@/types/nezha-api";
+
+// 全球地图（连同那份世界轮廓 GeoJSON）改成**按需加载**：这块默认是收起的，
+// 静态 import 会让每个访客在首屏就下载并 JSON.parse 那一整坨地图数据——
+// 改动前实测它是 942KB，占首个脚本包（1130KB）的 83%、首屏全部脚本的 41%。
+// 鼠标移到地图按钮上时顺手预热，桌面端点开通常已经就绪；没点的人一个字节都不下。
+const loadGlobalMap = () => import("@/components/GlobalMap");
+const GlobalMap = lazy(loadGlobalMap);
 
 type PreparedServer = {
 	online: boolean;
@@ -451,6 +458,7 @@ export default function Servers({
 			>
 				<section className="flex items-center gap-2 w-full overflow-hidden">
 					<button
+						onPointerEnter={() => void loadGlobalMap()}
 						onClick={() => {
 							setShowMap(showMap === "0" ? "1" : "0");
 							localStorage.setItem("showMap", showMap === "0" ? "1" : "0");
@@ -575,7 +583,18 @@ export default function Servers({
 				</div>
 			</div>
 			{hasServers && showMap === "1" && (
-				<GlobalMap now={nezhaWsData.now} serverList={nezhaWsData.servers} />
+				<Suspense
+					fallback={
+						// 骨架屏按实际区块的几何摆（标题行 20px + gap 16px + 9:5 的画布），
+					// 弱链路下地图要几百毫秒才到，点开时那块地儿不会先塌再撑开。
+					<div className="map-skeleton mt-8 flex flex-col gap-4" aria-hidden="true">
+						<Skeleton className="h-5 w-32" />
+						<Skeleton className="w-full aspect-9/5" />
+					</div>
+					}
+				>
+					<GlobalMap now={nezhaWsData.now} serverList={nezhaWsData.servers} />
+				</Suspense>
 			)}
 			{hasServers && showServices === "1" && (
 				<ServiceTracker serverList={filteredServers} />
