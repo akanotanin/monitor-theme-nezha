@@ -61,6 +61,11 @@
     </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- 图标的头一步（贴缓存 / 冷启动时早问一次主题设置）：public/nezha-icon-probe.js。
+         必须紧跟上面那行、且在入口包之前 —— 它要赶在浏览器去取 favicon 之前改掉 <link>，
+         否则站长换过图标的站，标签页会先闪一下主题自带那张（实测：改造前 +40ms 是自带图、
+         +269ms 才换成站长那张）。 -->
+    <script src="/nezha-icon-probe.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- 标签页标题的占位值：静态 HTML 不可能知道站长把站名改成了什么，
          真站名要到 JS 里才有。这里沿用上游那句（与 Header.tsx 里那句兜底值同值），
@@ -76,7 +81,9 @@
     <meta name="theme-color" content="hsl(0 0% 98%)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Monitor Nezha" />
+    <!-- iOS「添加到主屏」显示的名字。占位值沿用上游那句（与静态清单的 name 同值），
+         不在静态文件里写主题名：真站名到手后由 src/monitor/site-identity.ts 改写。 -->
+    <meta name="apple-mobile-web-app-title" content="Nezha Monitoring" />
     <link rel="apple-touch-icon" href="/android-chrome-192x192.png" />
 
     <link rel="stylesheet" href="/vendor/flag-icons.min.css" />

@@ -87,13 +87,18 @@ function coerce(raw: Record<string, unknown>): ThemeConfig {
 let cache: ThemeConfig | null = null;
 let inflight: Promise<ThemeConfig> | null = null;
 
+/** public/nezha-icon-probe.js 可能在入口包之前就早问过一次设置。 */
+type EarlyConfigWindow = { __nezhaThemeConfigPromise?: Promise<unknown> };
+
 /** 读主题配置；接口挂了就退回默认值（页面照常能看，只是没了站点级开关）。 */
 export function loadThemeConfig(): Promise<ThemeConfig> {
 	if (cache) return Promise.resolve(cache);
 	if (inflight) return inflight;
-	inflight = fetchThemeConfig()
+	// 早跑脚本已经问过就接过来用 —— 同一条接口每次加载只该发一条请求。
+	const early = (window as unknown as EarlyConfigWindow).__nezhaThemeConfigPromise;
+	inflight = (early ?? fetchThemeConfig())
 		.then((raw) => {
-			cache = coerce(raw ?? {});
+			cache = coerce(raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {});
 			return cache;
 		})
 		.catch(() => {

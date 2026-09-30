@@ -16,7 +16,7 @@ import { extname, join, normalize } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { WebSocketServer } from "ws";
 
-const OUT = process.argv[2] || "map-snapshot.json";
+const OUT = process.argv[2] || `${process.env.TEMP || "."}/map-snapshot.json`;
 const BASELINE = process.argv[3] || null;
 const PORT = 5310;
 const TYPES = {
@@ -233,7 +233,7 @@ if (THROTTLE) {
 let pass = 0;
 let fail = 0;
 const check = (name, ok, extra = "") => {
-	console.log(`${ok ? "PASS" : "FAIL"}  ${name}${extra ? " — " + extra : ""}`);
+	console.log(`${ok ? "PASS" : "FAIL"}  ${name}${extra ? ` — ${extra}` : ""}`);
 	if (ok) pass++;
 	else fail++;
 };

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ImageMinus } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ModeToggle } from "@/components/ThemeSwitcher";
@@ -9,6 +9,7 @@ import { useBackground } from "@/hooks/use-background";
 import { useWebSocketContext } from "@/hooks/use-websocket-context";
 import { fetchLoginUser, fetchSetting } from "@/lib/nezha-api";
 import { cn } from "@/lib/utils";
+import { applySiteIdentity, FALLBACK_ICON, ICON_CACHE_KEY } from "@/monitor/site-identity";
 
 import AnimateCountClient from "./AnimatedCount";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -68,6 +69,9 @@ function Header() {
 
 	// @ts-expect-error CustomLogo is a global variable
 	const customLogo = window.CustomLogo || "/apple-touch-icon.png";
+	const logoRef = useRef<HTMLImageElement | null>(null);
+	// 站长那张取不到时要换成主题自带那张 —— 换的是这张 <img> 的地址，不只是标签页图标
+	const [logoSrc, setLogoSrc] = useState(customLogo);
 
 
 	const customMobileBackgroundImage =
@@ -75,18 +79,36 @@ function Header() {
 			? window.CustomMobileBackgroundImage
 			: undefined;
 
+	// 站点图标统一交给 src/monitor/site-identity.ts 落地（标签页 + iOS 主屏 + PWA 清单）。
+	// 这里只做两件事：等顶栏这张**真的加载成功**再改，以及把成功的地址记进缓存。
+	//
+	// - 为什么非要等加载成功：同一个地址在页面加载期被并发拉两条时，弱链路上两条会互相踩，
+	//   页头那张会当场失败、顶栏图标整块消失（别处实测过约 1/5 成功率）。
+	// - 为什么记进 localStorage：给 public/nezha-icon-probe.js 用 —— 下次加载它抢在浏览器
+	//   去取 favicon 之前就把地址贴上，既不闪主题自带那张，也不用等入口包。
+	// - 为什么用 logoSrc 而不是 customLogo：站长那张挂掉、已退回主题自带那张之后，
+	//   退回的那张加载成功若还去写 customLogo，会把坏地址改回页面、还写进缓存（踩过）。
+	const acceptLogo = useCallback(() => {
+		applySiteIdentity({ icon: logoSrc });
+		try {
+			if (logoSrc === customLogo) localStorage.setItem(ICON_CACHE_KEY, logoSrc);
+			else localStorage.removeItem(ICON_CACHE_KEY);
+		} catch {
+			// 隐私模式 / 存储被禁用：图标照改，只是下次加载会先回到主题自带那张
+		}
+	}, [logoSrc, customLogo]);
+
+	const dropLogo = useCallback(() => {
+		// 站长填的地址取不到：顶栏这张也退回主题自带那张（别只让标签页退、页头留个破图）。
+		// 退回那张加载成功会再走一次 acceptLogo，那时 logoSrc 已不是站长那张 → 不写缓存。
+		setLogoSrc(FALLBACK_ICON);
+	}, []);
+
 	useEffect(() => {
-		const link =
-			document.querySelector("link[rel*='icon']") ||
-			document.createElement("link");
-		// @ts-expect-error set link.type
-		link.type = "image/x-icon";
-		// @ts-expect-error set link.rel
-		link.rel = "shortcut icon";
-		// @ts-expect-error set link.href
-		link.href = customLogo;
-		document.getElementsByTagName("head")[0].appendChild(link);
-	}, [customLogo]);
+		// onLoad 有可能赶不上（图命中内存缓存、元素挂上时就已经 complete），补一次
+		const img = logoRef.current;
+		if (img?.complete && img.naturalWidth > 0) acceptLogo();
+	}, [acceptLogo]);
 
 	// 站名由站长在后台改，而 /api/me（桥接到哪吒的 setting）没回来时手上只有兜底值——
 	// 所以数据没到就不写标题：写一次就只能写对一次，否则访客会看到「主题名 → 兜底名 → 站名」三跳。
@@ -97,6 +119,8 @@ function Header() {
 		// 那条迟到的响应不许把这里写好的标题改回去。
 		(window as unknown as { __titleOwned?: boolean }).__titleOwned = true;
 		document.title = title;
+		// 站名还要落到 iOS 主屏名与 PWA 清单上（清单是静态文件，这一句是唯一能改它的地方）
+		applySiteIdentity({ name: title });
 		try {
 			// 记给下一次刷新用（nezha-title-probe.js 贴的就是它）。
 			localStorage.setItem(TITLE_CACHE_KEY, title);
@@ -136,10 +160,13 @@ function Header() {
 				>
 					<div className="mr-1.5 flex flex-row items-center justify-start header-logo">
 						<img
+							ref={logoRef}
 							width={40}
 							height={40}
 							alt="apple-touch-icon"
-							src={customLogo}
+							src={logoSrc}
+							onLoad={acceptLogo}
+							onError={dropLogo}
 							className="relative m-0! border-2 border-transparent h-7 w-7 object-cover object-top p-0!"
 						/>
 					</div>
