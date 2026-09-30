@@ -120,9 +120,12 @@ export default function Servers({
 		queryFn: () => fetchServerGroup(),
 		retry: false,
 	});
+	// 「有没有延迟监控数据」用 hours=1 的轻量请求答（决定按钮出不出）；全量 30 天只在展开时
+	// 由 ServiceTracker 拉。原来启屏就把每个在线节点的 hours=720 ping 序列无可避免地拉一遍
+	// （真 hub 上单节点 ~791KB，7 节点 ≈ 5.5MB），去填一个默认收起的块。
 	const { data: serviceData, error: serviceError } = useQuery({
-		queryKey: ["service"],
-		queryFn: () => fetchService(),
+		queryKey: ["service-availability"],
+		queryFn: () => fetchService(1),
 		refetchOnMount: true,
 		refetchOnWindowFocus: true,
 		refetchInterval: 10000,

@@ -162,7 +162,9 @@ export async function bridgeFetchServerGroup(): Promise<ServerGroupResponse> {
 }
 
 /** 延迟监控 + 周期流量（替代哪吒的「服务监控」）。 */
-export async function bridgeFetchService(): Promise<ServiceResponse> {
+export async function bridgeFetchService(
+	hours: number = SERVICE_LOOKBACK_HOURS,
+): Promise<ServiceResponse> {
 	const nodes = await snapshot();
 	const targets = nodes.filter((node) => node.online !== false);
 	const histories = await mapWithLimit(
@@ -170,7 +172,7 @@ export async function bridgeFetchService(): Promise<ServiceResponse> {
 		SERVICE_CONCURRENCY,
 		async (node) => {
 			try {
-				const data = await historyFor(node.id, SERVICE_LOOKBACK_HOURS, "ping");
+				const data = await historyFor(node.id, hours, "ping");
 				return [node.id, data] as const;
 			} catch {
 				return [node.id, null] as const;
