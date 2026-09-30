@@ -34,9 +34,11 @@ export const fetchMonitor = (
 	period?: MonitorPeriod,
 ): Promise<MonitorResponse> => bridgeFetchMonitor(server_id, period);
 
-export const fetchService = (): Promise<ServiceResponse> => bridgeFetchService();
+export const fetchService = (): Promise<ServiceResponse> =>
+	bridgeFetchService();
 
-export const fetchSetting = (): Promise<SettingResponse> => bridgeFetchSetting();
+export const fetchSetting = (): Promise<SettingResponse> =>
+	bridgeFetchSetting();
 
 export const fetchServerMetrics = (
 	server_id: number,

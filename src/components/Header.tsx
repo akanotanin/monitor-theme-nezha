@@ -9,7 +9,11 @@ import { useBackground } from "@/hooks/use-background";
 import { useWebSocketContext } from "@/hooks/use-websocket-context";
 import { fetchLoginUser, fetchSetting } from "@/lib/nezha-api";
 import { cn } from "@/lib/utils";
-import { applySiteIdentity, FALLBACK_ICON, ICON_CACHE_KEY } from "@/monitor/site-identity";
+import {
+	applySiteIdentity,
+	FALLBACK_ICON,
+	ICON_CACHE_KEY,
+} from "@/monitor/site-identity";
 
 import AnimateCountClient from "./AnimatedCount";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -72,7 +76,6 @@ function Header() {
 	const logoRef = useRef<HTMLImageElement | null>(null);
 	// 站长那张取不到时要换成主题自带那张 —— 换的是这张 <img> 的地址，不只是标签页图标
 	const [logoSrc, setLogoSrc] = useState(customLogo);
-
 
 	const customMobileBackgroundImage =
 		window.CustomMobileBackgroundImage !== ""
@@ -163,7 +166,7 @@ function Header() {
 							ref={logoRef}
 							width={40}
 							height={40}
-							alt="apple-touch-icon"
+							alt=""
 							src={logoSrc}
 							onLoad={acceptLogo}
 							onError={dropLogo}

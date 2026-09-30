@@ -1,11 +1,7 @@
 /**
  * 极简探针的接口入口。上游所有请求都经过这里，改地址只改这一个文件。
  */
-import type {
-	MonitorHistory,
-	MonitorMe,
-	MonitorSnapshot,
-} from "./types";
+import type { MonitorHistory, MonitorMe, MonitorSnapshot } from "./types";
 
 /** 安装目录名，同时也是配置键。改这个值等于让已装实例丢设置。 */
 export const THEME_SHORT = "nezha-dash";
@@ -21,7 +17,8 @@ export const endpoints = {
 
 async function getJson<T>(url: string): Promise<T> {
 	const res = await fetch(url, { credentials: "same-origin" });
-	if (!res.ok) throw new Error(`请求 ${url} 失败：${res.status} ${res.statusText}`);
+	if (!res.ok)
+		throw new Error(`请求 ${url} 失败：${res.status} ${res.statusText}`);
 	return (await res.json()) as T;
 }
 
@@ -46,5 +43,7 @@ export async function fetchHistory(
 ): Promise<MonitorHistory> {
 	const params = new URLSearchParams({ hours: String(hours) });
 	if (series) params.set("series", series);
-	return getJson<MonitorHistory>(`${endpoints.history(id)}?${params.toString()}`);
+	return getJson<MonitorHistory>(
+		`${endpoints.history(id)}?${params.toString()}`,
+	);
 }

@@ -8,7 +8,15 @@ import {
 	ViewColumnsIcon,
 } from "@heroicons/react/20/solid";
 import { useQuery } from "@tanstack/react-query";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+	lazy,
+	Suspense,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import GroupSwitch from "@/components/GroupSwitch";
 import { Loader } from "@/components/loading/Loader";
@@ -586,11 +594,14 @@ export default function Servers({
 				<Suspense
 					fallback={
 						// 骨架屏按实际区块的几何摆（标题行 20px + gap 16px + 9:5 的画布），
-					// 弱链路下地图要几百毫秒才到，点开时那块地儿不会先塌再撑开。
-					<div className="map-skeleton mt-8 flex flex-col gap-4" aria-hidden="true">
-						<Skeleton className="h-5 w-32" />
-						<Skeleton className="w-full aspect-9/5" />
-					</div>
+						// 弱链路下地图要几百毫秒才到，点开时那块地儿不会先塌再撑开。
+						<div
+							className="map-skeleton mt-8 flex flex-col gap-4"
+							aria-hidden="true"
+						>
+							<Skeleton className="h-5 w-32" />
+							<Skeleton className="w-full aspect-9/5" />
+						</div>
 					}
 				>
 					<GlobalMap now={nezhaWsData.now} serverList={nezhaWsData.servers} />

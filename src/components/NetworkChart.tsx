@@ -337,7 +337,9 @@ export const NetworkChartClient = React.memo(function NetworkChart({
 		for (const key of chartDataKey) {
 			const data = chartData[key] || [];
 			// 只看有限值：延迟可能缺失（丢包样本），Math.min/max 会把 null 当 0 用
-			const delays = data.map((item) => item.avg_delay).filter((value) => Number.isFinite(value));
+			const delays = data
+				.map((item) => item.avg_delay)
+				.filter((value) => Number.isFinite(value));
 			if (delays.length > 0) {
 				const minDelay = Math.min(...delays);
 				const maxDelay = Math.max(...delays);

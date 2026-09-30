@@ -16,7 +16,12 @@ import type {
 	SettingResponse,
 } from "@/types/nezha-api";
 import { loadThemeConfig } from "./config";
-import { fetchHistory, fetchMe, fetchSnapshot, type HistorySeries } from "./endpoints";
+import {
+	fetchHistory,
+	fetchMe,
+	fetchSnapshot,
+	type HistorySeries,
+} from "./endpoints";
 import {
 	buildServiceResponse,
 	historyToMonitor,
@@ -28,7 +33,11 @@ import {
 } from "./mapping";
 import type { MonitorHistory, MonitorMe, MonitorNode } from "./types";
 
-const PERIOD_HOURS: Record<MetricPeriod, number> = { "1d": 24, "7d": 168, "30d": 720 };
+const PERIOD_HOURS: Record<MetricPeriod, number> = {
+	"1d": 24,
+	"7d": 168,
+	"30d": 720,
+};
 const SERVICE_LOOKBACK_HOURS = 720;
 const HISTORY_TTL_MS = 20_000;
 /**
@@ -122,13 +131,16 @@ async function mapWithLimit<T, R>(
 ): Promise<R[]> {
 	const results: R[] = [];
 	let cursor = 0;
-	const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
-		while (cursor < items.length) {
-			const index = cursor;
-			cursor += 1;
-			results[index] = await worker(items[index]);
-		}
-	});
+	const runners = Array.from(
+		{ length: Math.min(limit, items.length) },
+		async () => {
+			while (cursor < items.length) {
+				const index = cursor;
+				cursor += 1;
+				results[index] = await worker(items[index]);
+			}
+		},
+	);
 	await Promise.all(runners);
 	return results;
 }
@@ -153,14 +165,18 @@ export async function bridgeFetchServerGroup(): Promise<ServerGroupResponse> {
 export async function bridgeFetchService(): Promise<ServiceResponse> {
 	const nodes = await snapshot();
 	const targets = nodes.filter((node) => node.online !== false);
-	const histories = await mapWithLimit(targets, SERVICE_CONCURRENCY, async (node) => {
-		try {
-			const data = await historyFor(node.id, SERVICE_LOOKBACK_HOURS, "ping");
-			return [node.id, data] as const;
-		} catch {
-			return [node.id, null] as const;
-		}
-	});
+	const histories = await mapWithLimit(
+		targets,
+		SERVICE_CONCURRENCY,
+		async (node) => {
+			try {
+				const data = await historyFor(node.id, SERVICE_LOOKBACK_HOURS, "ping");
+				return [node.id, data] as const;
+			} catch {
+				return [node.id, null] as const;
+			}
+		},
+	);
 
 	const byNode = new Map<number, MonitorHistory>();
 	for (const [id, data] of histories) {
@@ -178,7 +194,12 @@ export async function bridgeFetchServerMetrics(
 		historyFor(serverId, PERIOD_HOURS[period] ?? 24, "metrics"),
 		nodeById(serverId),
 	]);
-	return historyToServerMetrics(history, metric, serverId, node?.name ?? String(serverId));
+	return historyToServerMetrics(
+		history,
+		metric,
+		serverId,
+		node?.name ?? String(serverId),
+	);
 }
 
 export async function bridgeFetchMonitor(

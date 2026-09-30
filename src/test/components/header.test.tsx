@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { MemoryRouter, useLocation } from "react-router-dom";
@@ -135,10 +135,10 @@ describe("Header", () => {
 		renderHeader();
 
 		const siteName = await screen.findByText("Status Hub");
-		expect(screen.getByAltText("apple-touch-icon")).toHaveAttribute(
-			"src",
-			"/logo.png",
-		);
+		// alt 已置空（装饰性 logo，紧跟站名文字），不能再按 alt 文本查它
+		const logo = document.querySelector(".header-logo img") as HTMLImageElement;
+		expect(logo).toHaveAttribute("src", "/logo.png");
+		expect(logo).toHaveAttribute("alt", "");
 		expect(screen.getAllByRole("link", { name: "Docs" })).toHaveLength(2);
 		expect(await screen.findAllByText("dashboard")).toHaveLength(2);
 		expect(screen.getByText("online").closest("button")).toHaveTextContent("4");
@@ -147,10 +147,15 @@ describe("Header", () => {
 		await waitFor(() => {
 			expect(document.title).toBe("Status Hub");
 		});
-		expect(document.querySelector("link[rel='shortcut icon']")).toHaveAttribute(
-			"href",
-			"/logo.png",
-		);
+		// 图标链是「等真的加载成功才落」——jsdom 不会真的加载图片，这里手动触发一次 load 来模拟加载成功
+		// （rel 已是规范的 "icon"，"shortcut" 是过期写法）
+		fireEvent.load(logo);
+		await waitFor(() => {
+			expect(document.querySelector("link[rel='icon']")).toHaveAttribute(
+				"href",
+				"/logo.png",
+			);
+		});
 
 		await user.click(siteName);
 
@@ -183,9 +188,9 @@ describe("Header", () => {
 
 		await waitFor(() => expect(document.title).toBe("Status Hub"));
 		// 置了「标题归 React 管」的标志（那条早问的迟到响应据此退让），并把站名记下来供刷新用。
-		expect(
-			(window as unknown as { __titleOwned?: boolean }).__titleOwned,
-		).toBe(true);
+		expect((window as unknown as { __titleOwned?: boolean }).__titleOwned).toBe(
+			true,
+		);
 		expect(localStorage.getItem("nezha-dash:site_name")).toBe("Status Hub");
 	});
 

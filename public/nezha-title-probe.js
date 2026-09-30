@@ -9,34 +9,32 @@
 //
 // 做成独立文件而不是内联脚本：站点前面若有 CSP，内联脚本会被挡掉；这里的地址也便于各站自己换。
 // 缓存键必须与 src/components/Header.tsx 里的 TITLE_CACHE_KEY 一致。
-;(function () {
-	var KEY = "nezha-dash:site_name"
-	var cached = null
+(() => {
+	var KEY = "nezha-dash:site_name";
+	var cached = null;
 	try {
-		cached = localStorage.getItem(KEY)
+		cached = localStorage.getItem(KEY);
 	} catch {
 		// 隐私模式 / 存储被禁用：跳过缓存这一步，下面照常早问一次。
 	}
 	if (cached) {
-		document.title = cached
+		document.title = cached;
 		// 给验收/排查留个来源标记：这一版标题是「贴的缓存」还是「自己早问来的」。
-		window.__titleProbeSource = "cache"
-		return
+		window.__titleProbeSource = "cache";
+		return;
 	}
-	if (!window.fetch) return
+	if (!window.fetch) return;
 	// 带个只用于区分的查询参数：hub 不看查询串，这条请求只是好在日志与验收里
 	// 与 React 那条 /api/me 分开（推迟其中一条，就能把「迟到的响应」这个竞态造出来）。
 	fetch("/api/me?theme-title=1", { credentials: "same-origin" })
-		.then(function (r) {
-			return r.json()
-		})
-		.then(function (d) {
-			if (!d || !d.site_name || window.__titleOwned) return
-			window.__titleProbeSource = "fetch"
-			document.title = d.site_name
+		.then((r) => r.json())
+		.then((d) => {
+			if (!d || !d.site_name || window.__titleOwned) return;
+			window.__titleProbeSource = "fetch";
+			document.title = d.site_name;
 			try {
-				localStorage.setItem(KEY, d.site_name)
+				localStorage.setItem(KEY, d.site_name);
 			} catch {}
 		})
-		.catch(function () {})
-})()
+		.catch(() => {});
+})();

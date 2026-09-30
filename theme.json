@@ -1,281 +1,281 @@
 {
-  "name": "Monitor Nezha",
-  "short": "nezha-dash",
-  "description": "极简探针（Monitor）的哪吒监控风格前端，前身来自 hamster1963/nezha-dash-v2。",
-  "version": "1.0.13",
-  "author": "移植到 Monitor by akanotanin",
-  "url": "https://github.com/akanotanin/monitor-theme-nezha-dash",
-  "config": [
-    {
-      "type": "title",
-      "label": "站点外观"
-    },
-    {
-      "type": "string",
-      "key": "customLogo",
-      "label": "站点 Logo",
-      "default": "/favicon.svg",
-      "help": "左上角 Logo 的图片地址；留空则用探针默认图标"
-    },
-    {
-      "type": "select",
-      "key": "forceTheme",
-      "label": "强制主题",
-      "default": "",
-      "options": [
-        {
-          "value": "",
-          "label": "跟随访客"
-        },
-        {
-          "value": "light",
-          "label": "浅色"
-        },
-        {
-          "value": "dark",
-          "label": "深色"
-        }
-      ],
-      "help": "覆盖访客自己的深浅色偏好"
-    },
-    {
-      "type": "text",
-      "key": "customLinks",
-      "label": "自定义导航链接",
-      "default": "",
-      "help": "JSON 数组，显示在页头右上角。例：[{\"name\":\"Blog\",\"link\":\"https://example.com\"}]（字段名必须是 name 与 link）"
-    },
-    {
-      "type": "string",
-      "key": "customBackgroundImage",
-      "label": "桌面端背景图",
-      "default": "",
-      "help": "图片地址，留空为无背景"
-    },
-    {
-      "type": "string",
-      "key": "customMobileBackgroundImage",
-      "label": "移动端背景图",
-      "default": "",
-      "help": "窄屏下使用的背景图地址，留空为无背景"
-    },
-    {
-      "type": "string",
-      "key": "customIllustration",
-      "label": "首页插画",
-      "default": "/character.webp",
-      "help": "服务器总览卡片旁的插画地址"
-    },
-    {
-      "type": "boolean",
-      "key": "disableAnimatedMan",
-      "label": "隐藏首页插画",
-      "default": false,
-      "help": "开启后总览卡片不再显示插画"
-    },
-    {
-      "type": "title",
-      "label": "首页行为"
-    },
-    {
-      "type": "boolean",
-      "key": "forceCardInline",
-      "label": "默认用紧凑列表视图",
-      "default": false,
-      "help": "强制所有访客首次进入就用紧凑列表（仍可手动切换）"
-    },
-    {
-      "type": "boolean",
-      "key": "forceShowMap",
-      "label": "默认展开全球地图",
-      "default": false,
-      "help": "强制展开地图区块（仍可手动收起）"
-    },
-    {
-      "type": "boolean",
-      "key": "forceShowServices",
-      "label": "默认展开延迟监控",
-      "default": false,
-      "help": "强制展开延迟监控区块（仍可手动收起）"
-    },
-    {
-      "type": "boolean",
-      "key": "forceUseSvgFlag",
-      "label": "强制使用 SVG 国旗",
-      "default": false,
-      "help": "不依赖系统的 emoji 国旗字体，渲染不出来时更稳"
-    },
-    {
-      "type": "boolean",
-      "key": "forcePeakCutEnabled",
-      "label": "图表剔除带宽峰值",
-      "default": true,
-      "help": "避免个别尖峰把曲线压平；关闭后按真实峰值缩放"
-    },
-    {
-      "type": "select",
-      "key": "forceSortType",
-      "label": "默认排序字段",
-      "default": "",
-      "options": [
-        {
-          "value": "",
-          "label": "不强制"
-        },
-        {
-          "value": "name",
-          "label": "名称"
-        },
-        {
-          "value": "uptime",
-          "label": "运行时间"
-        },
-        {
-          "value": "system",
-          "label": "系统"
-        },
-        {
-          "value": "cpu",
-          "label": "CPU"
-        },
-        {
-          "value": "mem",
-          "label": "内存"
-        },
-        {
-          "value": "disk",
-          "label": "硬盘"
-        },
-        {
-          "value": "up",
-          "label": "上行速率"
-        },
-        {
-          "value": "down",
-          "label": "下行速率"
-        },
-        {
-          "value": "up total",
-          "label": "上行流量"
-        },
-        {
-          "value": "down total",
-          "label": "下行流量"
-        }
-      ],
-      "help": "覆盖访客的排序选择"
-    },
-    {
-      "type": "select",
-      "key": "forceSortOrder",
-      "label": "默认排序方向",
-      "default": "",
-      "options": [
-        {
-          "value": "",
-          "label": "不强制"
-        },
-        {
-          "value": "desc",
-          "label": "降序"
-        },
-        {
-          "value": "asc",
-          "label": "升序"
-        }
-      ],
-      "help": "覆盖访客的排序方向"
-    },
-    {
-      "type": "title",
-      "label": "语言与自定义代码"
-    },
-    {
-      "type": "select",
-      "key": "language",
-      "label": "站点默认语言",
-      "default": "zh-CN",
-      "options": [
-        {
-          "value": "",
-          "label": "跟随访客"
-        },
-        {
-          "value": "zh-CN",
-          "label": "简体中文"
-        },
-        {
-          "value": "zh-TW",
-          "label": "繁體中文"
-        },
-        {
-          "value": "en-US",
-          "label": "English"
-        },
-        {
-          "value": "ja",
-          "label": "日本語"
-        },
-        {
-          "value": "ru-RU",
-          "label": "Русский"
-        },
-        {
-          "value": "de-DE",
-          "label": "Deutsch"
-        },
-        {
-          "value": "es-ES",
-          "label": "Español"
-        },
-        {
-          "value": "fr",
-          "label": "Français"
-        },
-        {
-          "value": "pt_BR",
-          "label": "Português (BR)"
-        },
-        {
-          "value": "gl",
-          "label": "Galego"
-        },
-        {
-          "value": "id",
-          "label": "Bahasa Indonesia"
-        },
-        {
-          "value": "ro",
-          "label": "Română"
-        },
-        {
-          "value": "ta-IN",
-          "label": "தமிழ்"
-        },
-        {
-          "value": "uk",
-          "label": "Українська"
-        }
-      ],
-      "help": "访客第一次进入时使用的语言（默认简体中文）；访客自己在页头切换过就以访客为准"
-    },
-    {
-      "type": "title",
-      "label": "卡片底部标签"
-    },
-    {
-      "type": "text",
-      "key": "planTags",
-      "label": "标签规则",
-      "default": "",
-      "help": "每行一条：匹配 = 标签1,标签2。匹配按「分组名」或「节点名」子串，* 兜底，# 开头是注释；标签写 IPv4／IPv6 走紫／粉芯片，第一个其它标签当带宽（蓝），其余是灰标签。例：\n东京 = 2.5Gbps,IPv4,IPv6\n* = 1Gbps,IPv4"
-    },
-    {
-      "type": "text",
-      "key": "customCode",
-      "label": "自定义代码",
-      "default": "",
-      "help": "注入到页面里的自定义 HTML／脚本（相当于哪吒后台的「自定义代码」）"
-    }
-  ]
+	"name": "Monitor Nezha",
+	"short": "nezha-dash",
+	"description": "极简探针（Monitor）的哪吒监控风格前端，前身来自 hamster1963/nezha-dash-v2。",
+	"version": "1.0.13",
+	"author": "移植到 Monitor by akanotanin",
+	"url": "https://github.com/akanotanin/monitor-theme-nezha-dash",
+	"config": [
+		{
+			"type": "title",
+			"label": "站点外观"
+		},
+		{
+			"type": "string",
+			"key": "customLogo",
+			"label": "站点 Logo",
+			"default": "/favicon.svg",
+			"help": "左上角 Logo 的图片地址；留空则用探针默认图标"
+		},
+		{
+			"type": "select",
+			"key": "forceTheme",
+			"label": "强制主题",
+			"default": "",
+			"options": [
+				{
+					"value": "",
+					"label": "跟随访客"
+				},
+				{
+					"value": "light",
+					"label": "浅色"
+				},
+				{
+					"value": "dark",
+					"label": "深色"
+				}
+			],
+			"help": "覆盖访客自己的深浅色偏好"
+		},
+		{
+			"type": "text",
+			"key": "customLinks",
+			"label": "自定义导航链接",
+			"default": "",
+			"help": "JSON 数组，显示在页头右上角。例：[{\"name\":\"Blog\",\"link\":\"https://example.com\"}]（字段名必须是 name 与 link）"
+		},
+		{
+			"type": "string",
+			"key": "customBackgroundImage",
+			"label": "桌面端背景图",
+			"default": "",
+			"help": "图片地址，留空为无背景"
+		},
+		{
+			"type": "string",
+			"key": "customMobileBackgroundImage",
+			"label": "移动端背景图",
+			"default": "",
+			"help": "窄屏下使用的背景图地址，留空为无背景"
+		},
+		{
+			"type": "string",
+			"key": "customIllustration",
+			"label": "首页插画",
+			"default": "/character.webp",
+			"help": "服务器总览卡片旁的插画地址"
+		},
+		{
+			"type": "boolean",
+			"key": "disableAnimatedMan",
+			"label": "隐藏首页插画",
+			"default": false,
+			"help": "开启后总览卡片不再显示插画"
+		},
+		{
+			"type": "title",
+			"label": "首页行为"
+		},
+		{
+			"type": "boolean",
+			"key": "forceCardInline",
+			"label": "默认用紧凑列表视图",
+			"default": false,
+			"help": "强制所有访客首次进入就用紧凑列表（仍可手动切换）"
+		},
+		{
+			"type": "boolean",
+			"key": "forceShowMap",
+			"label": "默认展开全球地图",
+			"default": false,
+			"help": "强制展开地图区块（仍可手动收起）"
+		},
+		{
+			"type": "boolean",
+			"key": "forceShowServices",
+			"label": "默认展开延迟监控",
+			"default": false,
+			"help": "强制展开延迟监控区块（仍可手动收起）"
+		},
+		{
+			"type": "boolean",
+			"key": "forceUseSvgFlag",
+			"label": "强制使用 SVG 国旗",
+			"default": false,
+			"help": "不依赖系统的 emoji 国旗字体，渲染不出来时更稳"
+		},
+		{
+			"type": "boolean",
+			"key": "forcePeakCutEnabled",
+			"label": "图表剔除带宽峰值",
+			"default": true,
+			"help": "避免个别尖峰把曲线压平；关闭后按真实峰值缩放"
+		},
+		{
+			"type": "select",
+			"key": "forceSortType",
+			"label": "默认排序字段",
+			"default": "",
+			"options": [
+				{
+					"value": "",
+					"label": "不强制"
+				},
+				{
+					"value": "name",
+					"label": "名称"
+				},
+				{
+					"value": "uptime",
+					"label": "运行时间"
+				},
+				{
+					"value": "system",
+					"label": "系统"
+				},
+				{
+					"value": "cpu",
+					"label": "CPU"
+				},
+				{
+					"value": "mem",
+					"label": "内存"
+				},
+				{
+					"value": "disk",
+					"label": "硬盘"
+				},
+				{
+					"value": "up",
+					"label": "上行速率"
+				},
+				{
+					"value": "down",
+					"label": "下行速率"
+				},
+				{
+					"value": "up total",
+					"label": "上行流量"
+				},
+				{
+					"value": "down total",
+					"label": "下行流量"
+				}
+			],
+			"help": "覆盖访客的排序选择"
+		},
+		{
+			"type": "select",
+			"key": "forceSortOrder",
+			"label": "默认排序方向",
+			"default": "",
+			"options": [
+				{
+					"value": "",
+					"label": "不强制"
+				},
+				{
+					"value": "desc",
+					"label": "降序"
+				},
+				{
+					"value": "asc",
+					"label": "升序"
+				}
+			],
+			"help": "覆盖访客的排序方向"
+		},
+		{
+			"type": "title",
+			"label": "语言与自定义代码"
+		},
+		{
+			"type": "select",
+			"key": "language",
+			"label": "站点默认语言",
+			"default": "zh-CN",
+			"options": [
+				{
+					"value": "",
+					"label": "跟随访客"
+				},
+				{
+					"value": "zh-CN",
+					"label": "简体中文"
+				},
+				{
+					"value": "zh-TW",
+					"label": "繁體中文"
+				},
+				{
+					"value": "en-US",
+					"label": "English"
+				},
+				{
+					"value": "ja",
+					"label": "日本語"
+				},
+				{
+					"value": "ru-RU",
+					"label": "Русский"
+				},
+				{
+					"value": "de-DE",
+					"label": "Deutsch"
+				},
+				{
+					"value": "es-ES",
+					"label": "Español"
+				},
+				{
+					"value": "fr",
+					"label": "Français"
+				},
+				{
+					"value": "pt_BR",
+					"label": "Português (BR)"
+				},
+				{
+					"value": "gl",
+					"label": "Galego"
+				},
+				{
+					"value": "id",
+					"label": "Bahasa Indonesia"
+				},
+				{
+					"value": "ro",
+					"label": "Română"
+				},
+				{
+					"value": "ta-IN",
+					"label": "தமிழ்"
+				},
+				{
+					"value": "uk",
+					"label": "Українська"
+				}
+			],
+			"help": "访客第一次进入时使用的语言（默认简体中文）；访客自己在页头切换过就以访客为准"
+		},
+		{
+			"type": "title",
+			"label": "卡片底部标签"
+		},
+		{
+			"type": "text",
+			"key": "planTags",
+			"label": "标签规则",
+			"default": "",
+			"help": "每行一条：匹配 = 标签1,标签2。匹配按「分组名」或「节点名」子串，* 兜底，# 开头是注释；标签写 IPv4／IPv6 走紫／粉芯片，第一个其它标签当带宽（蓝），其余是灰标签。例：\n东京 = 2.5Gbps,IPv4,IPv6\n* = 1Gbps,IPv4"
+		},
+		{
+			"type": "text",
+			"key": "customCode",
+			"label": "自定义代码",
+			"default": "",
+			"help": "注入到页面里的自定义 HTML／脚本（相当于哪吒后台的「自定义代码」）"
+		}
+	]
 }

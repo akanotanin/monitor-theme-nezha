@@ -19,8 +19,8 @@ import type {
 	ServiceResponse,
 	SettingResponse,
 } from "@/types/nezha-api";
-import { resolvePlanTags } from "./config";
 import type { ThemeConfig } from "./config";
+import { resolvePlanTags } from "./config";
 import type {
 	MonitorHistory,
 	MonitorHistorySample,
@@ -37,9 +37,13 @@ const num = (value: unknown, fallback = 0): number =>
  * 直接参与算术/交给上游组件会炸（上游 NetworkChart 会 null.toFixed）。
  * 所以统一收敛成数字：>=0 视为延迟，其它（null/负数/非数）视为丢包。
  */
-const pingLatency = (row: { latency?: unknown }): { delay: number; lost: boolean } => {
+const pingLatency = (row: {
+	latency?: unknown;
+}): { delay: number; lost: boolean } => {
 	const raw = Number(row?.latency);
-	return Number.isFinite(raw) && raw >= 0 ? { delay: raw, lost: false } : { delay: 0, lost: true };
+	return Number.isFinite(raw) && raw >= 0
+		? { delay: raw, lost: false }
+		: { delay: 0, lost: true };
 };
 
 /** 探针的 last_seen 是秒，哪吒的 last_active 是 ISO 字符串。 */
@@ -106,7 +110,10 @@ function cycleMonths(cycle?: string | null): number {
 }
 
 /** 探针给的是完整系统名（"Debian GNU/Linux 12 (bookworm)"），上游认 "debian" 这种短名。 */
-export function platformFromOs(os?: string | null): { platform: string; version: string } {
+export function platformFromOs(os?: string | null): {
+	platform: string;
+	version: string;
+} {
 	const text = os ?? "";
 	const lower = text.toLowerCase();
 	const table: [string, string][] = [
@@ -167,7 +174,9 @@ export function buildPublicNote(node: MonitorNode): string {
 	if (hasBilling) {
 		const endDate = node.expires_at ?? "0000-00-00";
 		const startDate = node.expires_at
-			? dayjs(node.expires_at).subtract(cycleMonths(node.billing_cycle), "month").format("YYYY-MM-DD")
+			? dayjs(node.expires_at)
+					.subtract(cycleMonths(node.billing_cycle), "month")
+					.format("YYYY-MM-DD")
 			: "";
 		const price = node.price;
 		const symbol = CURRENCY_SYMBOL[(node.currency ?? "").toUpperCase()] ?? "";
@@ -250,8 +259,14 @@ export function toNezhaServer(node: MonitorNode, nowMs: number): NezhaServer {
 			disk_used: num(metrics.disk_used),
 			// 哪吒这里是「自开机累计」，极简探针公开接口只给到「本计费周期」，
 			// 所以卡片/周期流量用的是周期口径（与探针面板的流量列一致）
-			net_in_transfer: num(metrics.month_rx, num(node.month_rx, num(node.total_rx))),
-			net_out_transfer: num(metrics.month_tx, num(node.month_tx, num(node.total_tx))),
+			net_in_transfer: num(
+				metrics.month_rx,
+				num(node.month_rx, num(node.total_rx)),
+			),
+			net_out_transfer: num(
+				metrics.month_tx,
+				num(node.month_tx, num(node.total_tx)),
+			),
 			net_in_speed: num(metrics.net_rx),
 			net_out_speed: num(metrics.net_tx),
 			uptime,
@@ -280,15 +295,17 @@ export function toServerGroups(nodes: MonitorNode[]): ServerGroupResponse {
 		list.push(node.id);
 		byGroup.set(name, list);
 	}
-	const data: ServerGroup[] = [...byGroup.entries()].map(([name, servers], index) => ({
-		group: {
-			id: index + 1,
-			created_at: "",
-			updated_at: "",
-			name,
-		},
-		servers,
-	}));
+	const data: ServerGroup[] = [...byGroup.entries()].map(
+		([name, servers], index) => ({
+			group: {
+				id: index + 1,
+				created_at: "",
+				updated_at: "",
+				name,
+			},
+			servers,
+		}),
+	);
 	return { success: true, data };
 }
 
@@ -365,7 +382,10 @@ export function historyToServerMetrics(
 }
 
 /** 延迟监控：一条探测线路 = 一个「监控项」，失败的一次记 100% 丢包。 */
-export function historyToMonitor(node: MonitorNode, history: MonitorHistory): MonitorResponse {
+export function historyToMonitor(
+	node: MonitorNode,
+	history: MonitorHistory,
+): MonitorResponse {
 	const probes = history.probes ?? {};
 	const byTask = new Map<number, MonitorPingRow[]>();
 	for (const row of history.ping ?? []) {
@@ -403,7 +423,10 @@ export function buildServiceResponse(
 	histories: Map<number, MonitorHistory>,
 ): ServiceResponse {
 	type Bucket = { up: number; down: number; delaySum: number };
-	const byTask = new Map<number, { name: string; serverNames: Set<string>; days: Bucket[] }>();
+	const byTask = new Map<
+		number,
+		{ name: string; serverNames: Set<string>; days: Bucket[] }
+	>();
 
 	const today = dayjs().startOf("day");
 	const dayIndex = (ts: number) => {
@@ -424,7 +447,11 @@ export function buildServiceResponse(
 				entry = {
 					name: probes[String(row.task_id)] ?? `#${row.task_id}`,
 					serverNames: new Set<string>(),
-					days: Array.from({ length: SERVICE_DAYS }, () => ({ up: 0, down: 0, delaySum: 0 })),
+					days: Array.from({ length: SERVICE_DAYS }, () => ({
+						up: 0,
+						down: 0,
+						delaySum: 0,
+					})),
 				};
 				byTask.set(row.task_id, entry);
 			}
@@ -451,7 +478,9 @@ export function buildServiceResponse(
 			current_down: todayBucket.down,
 			total_up: totalUp,
 			total_down: totalDown,
-			delay: entry.days.map((day) => (day.up > 0 ? Math.round(day.delaySum / day.up) : 0)),
+			delay: entry.days.map((day) =>
+				day.up > 0 ? Math.round(day.delaySum / day.up) : 0,
+			),
 			up: entry.days.map((day) => day.up),
 			down: entry.days.map((day) => day.down),
 		};
@@ -481,10 +510,16 @@ export function buildServiceResponse(
 		(existing.max as Record<string, number>)[key] = max;
 		(existing.min as Record<string, number>)[key] = 0;
 		existing.server_name[key] = node.name;
-		existing.transfer[key] = num(node.month_used, num(node.month_rx) + num(node.month_tx));
+		existing.transfer[key] = num(
+			node.month_used,
+			num(node.month_rx) + num(node.month_tx),
+		);
 		existing.next_update[key] = to;
 		cycleStats[cycleKey] = existing;
 	}
 
-	return { success: true, data: { services, cycle_transfer_stats: cycleStats } };
+	return {
+		success: true,
+		data: { services, cycle_transfer_stats: cycleStats },
+	};
 }

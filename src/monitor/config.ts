@@ -62,7 +62,10 @@ function coerce(raw: Record<string, unknown>): ThemeConfig {
 	const d = defaultThemeConfig;
 	return {
 		customLogo: asString(raw.customLogo, d.customLogo),
-		customBackgroundImage: asString(raw.customBackgroundImage, d.customBackgroundImage),
+		customBackgroundImage: asString(
+			raw.customBackgroundImage,
+			d.customBackgroundImage,
+		),
 		customMobileBackgroundImage: asString(
 			raw.customMobileBackgroundImage,
 			d.customMobileBackgroundImage,
@@ -80,7 +83,10 @@ function coerce(raw: Record<string, unknown>): ThemeConfig {
 		forceCardInline: asBoolean(raw.forceCardInline, d.forceCardInline),
 		forceUseSvgFlag: asBoolean(raw.forceUseSvgFlag, d.forceUseSvgFlag),
 		disableAnimatedMan: asBoolean(raw.disableAnimatedMan, d.disableAnimatedMan),
-		forcePeakCutEnabled: asBoolean(raw.forcePeakCutEnabled, d.forcePeakCutEnabled),
+		forcePeakCutEnabled: asBoolean(
+			raw.forcePeakCutEnabled,
+			d.forcePeakCutEnabled,
+		),
 	};
 }
 
@@ -95,10 +101,13 @@ export function loadThemeConfig(): Promise<ThemeConfig> {
 	if (cache) return Promise.resolve(cache);
 	if (inflight) return inflight;
 	// 早跑脚本已经问过就接过来用 —— 同一条接口每次加载只该发一条请求。
-	const early = (window as unknown as EarlyConfigWindow).__nezhaThemeConfigPromise;
+	const early = (window as unknown as EarlyConfigWindow)
+		.__nezhaThemeConfigPromise;
 	inflight = (early ?? fetchThemeConfig())
 		.then((raw) => {
-			cache = coerce(raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {});
+			cache = coerce(
+				raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {},
+			);
 			return cache;
 		})
 		.catch(() => {
@@ -120,7 +129,10 @@ export function loadThemeConfig(): Promise<ThemeConfig> {
  * `#` 开头是注释。标签写 IPv4／IPv6（不区分大小写）走紫／粉芯片，第一个其它标签当带宽（蓝），
  * 其余进灰标签 —— 用的就是上游 PlanInfo 已有的那几种芯片。
  */
-export function resolvePlanTags(node: { name?: string | null; group?: string | null }): {
+export function resolvePlanTags(node: {
+	name?: string | null;
+	group?: string | null;
+}): {
 	bandwidth: string;
 	ipv4: boolean;
 	ipv6: boolean;
@@ -147,7 +159,10 @@ export function resolvePlanTags(node: { name?: string | null; group?: string | n
 			fallback = labels;
 			continue;
 		}
-		if (String(node.name ?? "").includes(matcher) || String(node.group ?? "").includes(matcher)) {
+		if (
+			String(node.name ?? "").includes(matcher) ||
+			String(node.group ?? "").includes(matcher)
+		) {
 			return toPlanTags(labels);
 		}
 	}
@@ -158,7 +173,12 @@ function toPlanTags(labels: string[]) {
 	const ipv4 = labels.some((l) => /^ipv4$/i.test(l));
 	const ipv6 = labels.some((l) => /^ipv6$/i.test(l));
 	const rest = labels.filter((l) => !/^ipv[46]$/i.test(l));
-	return { bandwidth: rest[0] ?? "", ipv4, ipv6, extra: rest.slice(1).join(",") };
+	return {
+		bandwidth: rest[0] ?? "",
+		ipv4,
+		ipv6,
+		extra: rest.slice(1).join(","),
+	};
 }
 
 /**

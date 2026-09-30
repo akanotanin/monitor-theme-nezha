@@ -10,8 +10,8 @@ const cfgSrc = readFileSync("src/monitor/config.ts", "utf8");
 
 const fromTheme = new Map();
 for (const item of theme.config ?? []) {
-  if (!item.key || !("default" in item)) continue;
-  fromTheme.set(item.key, item.default);
+	if (!item.key || !("default" in item)) continue;
+	fromTheme.set(item.key, item.default);
 }
 
 const start = cfgSrc.indexOf("defaultThemeConfig");
@@ -19,32 +19,42 @@ if (start < 0) throw new Error("config.ts 里找不到 defaultThemeConfig");
 const body = cfgSrc.slice(start, cfgSrc.indexOf("};", start));
 const fromCode = new Map();
 for (const line of body.split("\n")) {
-  const m = /^\s*([A-Za-z_][\w]*)\s*:\s*(.+?),\s*$/.exec(line);
-  if (!m) continue;
-  let value = m[2].trim();
-  if (value === "true") value = true;
-  else if (value === "false") value = false;
-  else if (/^".*"$/.test(value)) value = value.slice(1, -1);
-  fromCode.set(m[1], value);
+	const m = /^\s*([A-Za-z_][\w]*)\s*:\s*(.+?),\s*$/.exec(line);
+	if (!m) continue;
+	let value = m[2].trim();
+	if (value === "true") value = true;
+	else if (value === "false") value = false;
+	else if (/^".*"$/.test(value)) value = value.slice(1, -1);
+	fromCode.set(m[1], value);
 }
 
 const problems = [];
 for (const [key, themeValue] of fromTheme) {
-  if (!fromCode.has(key)) {
-    problems.push(`${key}: config.ts 缺少默认值（theme.json=${JSON.stringify(themeValue)}）`);
-    continue;
-  }
-  const codeValue = fromCode.get(key);
-  if (codeValue !== themeValue) {
-    problems.push(`${key}: theme.json=${JSON.stringify(themeValue)} ≠ config.ts=${JSON.stringify(codeValue)}`);
-  }
+	if (!fromCode.has(key)) {
+		problems.push(
+			`${key}: config.ts 缺少默认值（theme.json=${JSON.stringify(themeValue)}）`,
+		);
+		continue;
+	}
+	const codeValue = fromCode.get(key);
+	if (codeValue !== themeValue) {
+		problems.push(
+			`${key}: theme.json=${JSON.stringify(themeValue)} ≠ config.ts=${JSON.stringify(codeValue)}`,
+		);
+	}
 }
 for (const key of fromCode.keys()) {
-  if (!fromTheme.has(key)) {
-    problems.push(`${key}: theme.json 缺少配置项（config.ts=${JSON.stringify(fromCode.get(key))}）`);
-  }
+	if (!fromTheme.has(key)) {
+		problems.push(
+			`${key}: theme.json 缺少配置项（config.ts=${JSON.stringify(fromCode.get(key))}）`,
+		);
+	}
 }
 if (problems.length) {
-  throw new Error(`theme.json 与 config.ts 的默认值不一致：\n  - ${problems.join("\n  - ")}`);
+	throw new Error(
+		`theme.json 与 config.ts 的默认值不一致：\n  - ${problems.join("\n  - ")}`,
+	);
 }
-console.log(`  ✔ 默认值一致（theme.json ${fromTheme.size} 项 / config.ts ${fromCode.size} 项）`);
+console.log(
+	`  ✔ 默认值一致（theme.json ${fromTheme.size} 项 / config.ts ${fromCode.size} 项）`,
+);
