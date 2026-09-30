@@ -13,6 +13,7 @@ const OBSERVE_MS = Number(process.env.AUDIT_MS || 25000);
 const NO_WS = process.env.AUDIT_NOWS === "1";
 // AUDIT_THROTTLE=<kbps>：限速跑，用来看首屏到底被什么拖慢
 const THROTTLE = Number(process.env.AUDIT_THROTTLE || 0);
+const ME_DELAY = Number(process.env.AUDIT_ME_DELAY || 0);
 const TYPES = {
 	".html": "text/html; charset=utf-8",
 	".js": "text/javascript",
@@ -83,8 +84,13 @@ const NODES = {
 	],
 };
 
+const apiCount = {};
 const server = createServer((req, res) => {
-	const path = new URL(req.url, `http://127.0.0.1:${PORT}`).pathname;
+	const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
+	const path = url.pathname;
+	// 按「路径 + 查询串」计数：带 ?theme-title=1 的是站名早跑脚本那条，跟 App 那条不是一回事
+	apiCount[url.pathname + url.search] =
+		(apiCount[url.pathname + url.search] || 0) + 1;
 	if (path.startsWith("/api/")) {
 		let body = {};
 		if (path === "/api/me")
@@ -104,6 +110,11 @@ const server = createServer((req, res) => {
 			"Content-Type": "application/json",
 			"Cache-Control": "no-store",
 		});
+		// AUDIT_ME_DELAY=<ms>：本机 RTT≈0，/api/me 的两条并发请求会先后完成、看不出合并效果；
+		// 给这条接口加个真实网络量级的延迟，才验得出「并发的那份被合成一条」。
+		if (path === "/api/me" && ME_DELAY) {
+			return setTimeout(() => res.end(JSON.stringify(body)), ME_DELAY);
+		}
 		return res.end(JSON.stringify(body));
 	}
 	const file = join(
@@ -316,6 +327,47 @@ console.log(
 			.join(" ") || "（无）"
 	}`,
 );
+
+// 页面自己记的资源时间线：每个资源的 responseEnd（相对导航起点，ms）
+const timeline = JSON.parse(
+	await js(`JSON.stringify(
+  performance.getEntriesByType('resource').map((e) => [e.name.replace(location.origin, ''), Math.round(e.responseEnd), Math.round(e.transferSize || 0)])
+)`),
+);
+const BUCKETS = {
+	首屏必需:
+		/^\/($|assets\/(index|rolldown|react-dom|@radix-ui|@tanstack|@floating-ui|sonner|i18next|react-i18next|react-router|lucide-react|cmdk|class-variance|dayjs|tailwind-merge|utils|@heroicons|country-flag-icons)[.-])|^\/(flags|vendor)\//,
+	"详情页预取(recharts 等)":
+		/assets\/(ServerDetail|recharts|d3-scale|d3-shape|d3-color|d3-format|d3-path|d3-interpolate|@reduxjs|immer|react-redux|es-toolkit|decimal|eventemitter3|NetworkChart|react-is|i18n-iso|diacritics)[.-]/,
+	"地图(按需)": /assets\/(GlobalMap|d3-geo)[.-]/,
+};
+const stat = {};
+for (const [url, end, size] of timeline) {
+	for (const [name, re] of Object.entries(BUCKETS)) {
+		if (re.test(url)) {
+			if (!stat[name]) stat[name] = { n: 0, bytes: 0, lastEnd: 0 };
+			const s = stat[name];
+			s.n++;
+			s.bytes += size;
+			s.lastEnd = Math.max(s.lastEnd, end);
+			break;
+		}
+	}
+}
+console.log("\n—— 资源时间线（responseEnd，相对导航起点）——");
+for (const [name, s] of Object.entries(stat)) {
+	console.log(
+		`   ${name}: ${s.n} 个 / ${(s.bytes / 1024).toFixed(1)} KB / 最后一个落地 ${s.lastEnd}ms`,
+	);
+}
+const tail = timeline
+	.filter(([, e]) => e > 0)
+	.sort((a, b) => b[1] - a[1])
+	.slice(0, 8);
+console.log(
+	`   最晚落地的 8 个：${tail.map(([u, e, b]) => `${u.split("/").pop()}@${e}ms(${(b / 1024).toFixed(0)}KB)`).join(" ")}`,
+);
+console.log(`\nAPI 请求计数：${JSON.stringify(apiCount)}`);
 
 writeFileSync(
 	process.env.AUDIT_OUT || `${process.env.TEMP || "."}/audit-home.json`,

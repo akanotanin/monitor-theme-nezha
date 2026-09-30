@@ -31,7 +31,14 @@ import type { MonitorHistory, MonitorMe, MonitorNode } from "./types";
 const PERIOD_HOURS: Record<MetricPeriod, number> = { "1d": 24, "7d": 168, "30d": 720 };
 const SERVICE_LOOKBACK_HOURS = 720;
 const HISTORY_TTL_MS = 20_000;
-const PING_TTL_MS = 55_000;
+/**
+ * ping 历史的缓存时长。原先是 55 秒 —— 但 ping 序列是**原始样本**，量级完全不是一个档次：
+ * 实测真 hub（9 条探测线路）单节点 `hours=720&series=ping` 就有 **791KB**（12,960 行），
+ * 而首页会为**每个在线节点**拉一份来填「延迟监控」块（那块默认还是收起的）。
+ * 55 秒一过整份重来 → 7 个节点的站开着标签页 ≈ 5.5MB/分钟。
+ * 这个块看的是「按天聚合的上行/下行/平均延迟」，分钟级新鲜度毫无意义，所以放到 5 分钟。
+ */
+const PING_TTL_MS = 300_000;
 const SNAPSHOT_TTL_MS = 5_000;
 const SERVICE_CONCURRENCY = 4;
 
@@ -48,9 +55,25 @@ async function snapshot(force = false): Promise<MonitorNode[]> {
 	return nodes;
 }
 
+/**
+ * 同一次加载里 `/api/me` 会被两条 query 同时打（Header 的「站点设置」与 DashboardLink 的
+ * 「登录态」），冷启动时就是两条并发且一模一样的请求。这里只合并**并发**的那一份：
+ * 调用方各自决定怎么处理失败（设置那边退默认值、登录态那条要抛错），所以不缓存失败结果。
+ */
+let meInflight: Promise<MonitorMe> | null = null;
+
+function fetchMeOnce(): Promise<MonitorMe> {
+	if (!meInflight) {
+		meInflight = fetchMe().finally(() => {
+			meInflight = null;
+		});
+	}
+	return meInflight;
+}
+
 async function meOrEmpty(): Promise<MonitorMe> {
 	try {
-		return await fetchMe();
+		return await fetchMeOnce();
 	} catch {
 		return {};
 	}
@@ -119,7 +142,7 @@ export async function bridgeFetchSetting(): Promise<SettingResponse> {
 }
 
 export async function bridgeFetchLoginUser(): Promise<LoginUserResponse> {
-	return toLoginUser(await fetchMe());
+	return toLoginUser(await fetchMeOnce());
 }
 
 export async function bridgeFetchServerGroup(): Promise<ServerGroupResponse> {
