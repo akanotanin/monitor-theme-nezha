@@ -17,6 +17,16 @@ export interface NezhaServer {
 	 * 因此在线状态取这个字段，没给值时退回上游按 last_active 推算的逻辑。
 	 */
 	online?: boolean;
+	/**
+	 * 后台那个「仅管理员可见」的备注原文（没写是空串）。上游视图模型里没有这一格，
+	 * 是 mapping.ts 从 MonitorNode 搬过来的——整页详情那一块拿它拼合并备注（见 @/monitor/config）。
+	 */
+	remark?: string;
+	/**
+	 * 写给访客的那条公开备注原文（没写是空串）。同样是从 MonitorNode 搬过来的：卡片底部那排
+	 * 芯片已经把它拼进 `public_note` 了，而详情页那一块要的是**原文**（与私有那条合并成一串）。
+	 */
+	public_remark?: string;
 }
 
 export interface NezhaServerHost {
@@ -192,7 +202,8 @@ export type MetricType =
 	| "uptime"
 	| "gpu";
 
-export type MetricPeriod = "1d" | "7d" | "30d";
+/** 上游那三档 + 后补的两档（保留天数够长时才出现，见 monitor/periods.ts）。 */
+export type MetricPeriod = "1d" | "7d" | "30d" | "90d" | "365d";
 
 export interface MetricDataPoint {
 	ts: number;

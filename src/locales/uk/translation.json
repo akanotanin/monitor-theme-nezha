@@ -31,7 +31,8 @@
 		"days": "Днів",
 		"hours": "Годин",
 		"offline": "Offline",
-		"unknown": "Невідомо"
+		"unknown": "Невідомо",
+		"privateRemark": "Приватна нотатка · видно лише вам"
 	},
 	"serverDetailChart": {
 		"mem": "Мем"

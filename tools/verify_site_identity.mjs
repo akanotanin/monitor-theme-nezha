@@ -319,7 +319,7 @@ async function scenario(name, { seeded, expectIcon }) {
 		),
 		iconLog: JSON.parse(await js(`JSON.stringify(window.__iconLog || [])`)),
 		ownedAt: Number(await js(`window.__ownedAt || 0`)),
-		cache: await js(`(localStorage.getItem('nezha-dash:site_icon') || '')`),
+		cache: await js(`(localStorage.getItem('nezha:site_icon') || '')`),
 		manifestHref: await js(
 			`(document.querySelector('link[rel="manifest"]') || {}).getAttribute?.('href') || ''`,
 		),
@@ -483,14 +483,12 @@ check(
 );
 
 // ② 返访：把上次成功那张先塞进 localStorage
-await js(
-	`localStorage.setItem('nezha-dash:site_icon', ${JSON.stringify(LOGO)})`,
-);
+await js(`localStorage.setItem('nezha:site_icon', ${JSON.stringify(LOGO)})`);
 await scenario("② 返访（有缓存）", { seeded: true, expectIcon: LOGO });
 
 // ③ 站长设的图标取不到：应当退回主题自带那张，而且不许把坏地址记进缓存
 themeConfig = { customLogo: BROKEN };
-await js(`localStorage.removeItem('nezha-dash:site_icon')`);
+await js(`localStorage.removeItem('nezha:site_icon')`);
 const broken = await scenario("③ 图标取不到（404）", {
 	seeded: false,
 	expectIcon: FALLBACK,

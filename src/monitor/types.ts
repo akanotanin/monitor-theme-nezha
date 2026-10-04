@@ -47,6 +47,18 @@ export interface MonitorNode {
 	public?: boolean;
 	sort?: number;
 	last_seen?: number;
+	/**
+	 * 站长在后台写给访客的一行说明（单行、≤100 字，留空是空串）。hub 1.3.2 起随**公开视图**
+	 * 一起下发，所以匿名也拿得到——与节点上那个私有的 `remark` 不是一回事。老 hub 没有这个 key。
+	 * 它是卡片底部标签的**兜底来源**：主题设置里的「标签规则」没匹配到这台时才用它（见 config.ts）。
+	 */
+	public_remark?: string | null;
+	/**
+	 * 站长在后台写给**自己**看的备注（可以多行、可以很长）。hub 只把它下发给登录的管理员，
+	 * 匿名视图里这个 key 根本不存在——所以整页详情那一块只有站长自己看得到。
+	 * 与上面的 `public_remark` 不是一回事：那个给访客、单行、≤100 字。
+	 */
+	remark?: string | null;
 	agent_version?: string | null;
 	expires_at?: string | null;
 	expires_in?: number | null;
@@ -79,6 +91,11 @@ export interface MonitorMe {
 	public_page?: boolean;
 	site?: string;
 	site_name?: string;
+	/**
+	 * hub 的历史保留天数（1~365，1.3.2 起默认 30）。时间范围那排按钮按它生成（见 periods.ts）；
+	 * 老 hub 不给这个字段，按 7 天算——正好是 1.15.x 时代那排。
+	 */
+	history_days?: number;
 }
 
 /** 一条 Ping 采样：latency 为 -1 表示这次探测失败（丢包）。 */

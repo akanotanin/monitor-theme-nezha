@@ -8,17 +8,22 @@ import { DashCommand } from "./components/DashCommand";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Footer from "./components/Footer";
 import Header, { RefreshToast } from "./components/Header";
+import { ServerDetailLoading } from "./components/loading/ServerDetailLoading";
 import { useBackground } from "./hooks/use-background";
 import { useTheme } from "./hooks/use-theme";
 import { InjectContext } from "./lib/inject";
 import { fetchSetting } from "./lib/nezha-api";
 import { cn } from "./lib/utils";
+import { prefetchServerDetail } from "./monitor/prefetch";
 import ErrorPage from "./pages/ErrorPage";
 import Server from "./pages/Server";
 
 const NotFound = lazy(() => import("./pages/NotFound"));
-const loadServerDetail = () => import("./pages/ServerDetail");
-const ServerDetail = lazy(loadServerDetail);
+/**
+ * 详情页的 chunk 按意图加载（见 src/monitor/prefetch.ts）：挂载时不再无条件预取 ——
+ * 那会让每个首页访客白下 449.5KB（recharts + d3 + redux）。指针碰到卡片时才拉。
+ */
+const ServerDetail = lazy(prefetchServerDetail);
 
 // Route checker component
 const RouteChecker: React.FC = () => {
@@ -42,10 +47,6 @@ const MainApp: React.FC = () => {
 	const { setTheme } = useTheme();
 	const [isCustomCodeInjected, setIsCustomCodeInjected] = useState(false);
 	const { backgroundImage: customBackgroundImage } = useBackground();
-
-	useEffect(() => {
-		loadServerDetail();
-	}, []);
 
 	useEffect(() => {
 		if (settingData?.data?.config?.custom_code) {
@@ -122,7 +123,7 @@ const MainApp: React.FC = () => {
 						<Route
 							path="/server/:id"
 							element={
-								<Suspense fallback={null}>
+								<Suspense fallback={<ServerDetailLoading />}>
 									<ServerDetail />
 								</Suspense>
 							}

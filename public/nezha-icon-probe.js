@@ -13,8 +13,8 @@
 //
 // 做成独立文件而不是内联脚本：站点前面若有 CSP，内联脚本会被挡掉。
 (() => {
-	var KEY = "nezha-dash:site_icon";
-	var SHORT = "nezha-dash";
+	var KEY = "nezha:site_icon";
+	var SHORT = "nezha";
 	var MIME = {
 		svg: "image/svg+xml",
 		png: "image/png",

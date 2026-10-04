@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { MemoryRouter, useLocation } from "react-router-dom";
@@ -172,7 +172,7 @@ describe("Header", () => {
 		);
 		// 静态 HTML 留下的占位值（index.html 里那句）：数据没到时谁都不许改写它。
 		document.title = "哪吒监控 Nezha Monitoring";
-		localStorage.removeItem("nezha-dash:site_name");
+		localStorage.removeItem("nezha:site_name");
 		// 上一个用例已经置过这个标志（同一个 jsdom window），先摘掉再验。
 		delete (window as unknown as { __titleOwned?: boolean }).__titleOwned;
 
@@ -191,7 +191,7 @@ describe("Header", () => {
 		expect((window as unknown as { __titleOwned?: boolean }).__titleOwned).toBe(
 			true,
 		);
-		expect(localStorage.getItem("nezha-dash:site_name")).toBe("Status Hub");
+		expect(localStorage.getItem("nezha:site_name")).toBe("Status Hub");
 	});
 
 	it("uses the offline display and login links when websocket and auth are unavailable", async () => {

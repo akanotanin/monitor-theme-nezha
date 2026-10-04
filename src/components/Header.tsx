@@ -24,7 +24,7 @@ import { Button } from "./ui/button";
 
 // 标签页标题的缓存键，与 public/nezha-title-probe.js 里那个 KEY 必须一致（那个脚本在入口包
 // 执行前就把站名贴上，靠的就是这个键）。用主题自己的键，避免同源上两个主题互相覆盖。
-const TITLE_CACHE_KEY = "nezha-dash:site_name";
+const TITLE_CACHE_KEY = "nezha:site_name";
 
 interface TimeState {
 	hh: number;

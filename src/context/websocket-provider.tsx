@@ -1,5 +1,6 @@
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { noteLiveFrame } from "@/monitor/bridge";
 import { fetchSnapshot } from "@/monitor/endpoints";
 import { toNezhaServer } from "@/monitor/mapping";
 import type { MonitorNode } from "@/monitor/types";
@@ -76,6 +77,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 	 */
 	const applyFrame = useCallback((frame: unknown) => {
 		try {
+			// 顺手把这帧喂给桥接层：`/api/nodes` 与 WS 是同一份数据，它有了这份就不必再自己拉
+			// （首页那条 10 秒一次的「有没有延迟监控数据」轮询会读它，见 src/monitor/bridge.ts）。
+			noteLiveFrame((frame as MonitorFrame | null)?.nodes);
 			const newData = normalizeWebSocketResponse(frame);
 			setLastData(newData);
 			// 更新历史消息，保持最新的30条记录

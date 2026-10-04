@@ -9,6 +9,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ensureLocale } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 export function LanguageSwitcher() {
@@ -21,8 +22,10 @@ export function LanguageSwitcher() {
 
 	const locale = i18n.languages[0];
 
-	const handleSelect = (e: Event, newLocale: string) => {
+	const handleSelect = async (e: Event, newLocale: string) => {
 		e.preventDefault(); // 阻止默认的关闭行为
+		// 词条按需加载（见 src/i18n.js）：先把它拉进来再切，免得先闪一下兜底语言。
+		await ensureLocale(newLocale);
 		i18n.changeLanguage(newLocale);
 	};
 

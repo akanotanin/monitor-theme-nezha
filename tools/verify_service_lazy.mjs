@@ -10,7 +10,7 @@
 //     ① 默认收起 —— 有 `hours=1&series=ping`、**没有** `hours=720&series=ping`
 //     ② 手动展开（localStorage showServices=1 再刷新）—— 出现 `hours=720&series=ping`
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";

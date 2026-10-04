@@ -1,10 +1,10 @@
 {
 	"name": "Monitor Nezha",
-	"short": "nezha-dash",
-	"description": "极简探针（Monitor）的哪吒监控风格前端，前身来自 hamster1963/nezha-dash-v2。",
-	"version": "1.0.14",
+	"short": "nezha",
+	"description": "极简探针（Monitor）的哪吒监控风格主题，前身来自 hamster1963/nezha-dash-v2。",
+	"version": "1.2.0",
 	"author": "移植到 Monitor by akanotanin",
-	"url": "https://github.com/akanotanin/monitor-theme-nezha-dash",
+	"url": "https://github.com/akanotanin/monitor-theme-nezha",
 	"config": [
 		{
 			"type": "title",
@@ -260,6 +260,42 @@
 			"help": "访客第一次进入时使用的语言（默认简体中文）；访客自己在页头切换过就以访客为准"
 		},
 		{
+			"type": "text",
+			"key": "customCode",
+			"label": "自定义代码",
+			"default": "",
+			"help": "注入到页面里的自定义 HTML／脚本（相当于哪吒后台的「自定义代码」）"
+		},
+		{
+			"type": "title",
+			"label": "备注"
+		},
+		{
+			"type": "select",
+			"key": "remarkPlacement",
+			"label": "备注显示位置",
+			"default": "both",
+			"options": [
+				{
+					"value": "both",
+					"label": "卡片与详情页都显示"
+				},
+				{
+					"value": "card",
+					"label": "只在卡片上显示"
+				},
+				{
+					"value": "detail",
+					"label": "只在整页详情里显示"
+				},
+				{
+					"value": "none",
+					"label": "都不显示"
+				}
+			],
+			"help": "卡片＝卡片底部那排标签（含紧凑列表）；详情页＝点进去的那一整页。备注在后台节点里填（公开给访客、私有给自己），逗号分隔＝多枚标签，留空＝不显示。"
+		},
+		{
 			"type": "title",
 			"label": "卡片底部标签"
 		},
@@ -268,14 +304,7 @@
 			"key": "planTags",
 			"label": "标签规则",
 			"default": "",
-			"help": "每行一条：匹配 = 标签1,标签2。匹配按「分组名」或「节点名」子串，* 兜底，# 开头是注释；标签写 IPv4／IPv6 走紫／粉芯片，第一个其它标签当带宽（蓝），其余是灰标签。例：\n东京 = 2.5Gbps,IPv4,IPv6\n* = 1Gbps,IPv4"
-		},
-		{
-			"type": "text",
-			"key": "customCode",
-			"label": "自定义代码",
-			"default": "",
-			"help": "注入到页面里的自定义 HTML／脚本（相当于哪吒后台的「自定义代码」）"
+			"help": "每行一条：匹配 = 标签1,标签2。匹配按「分组名」或「节点名」子串，* 兜底，# 开头是注释；标签写 IPv4／IPv6 走紫／粉芯片，第一个其它标签当带宽（蓝），其余是灰标签。这里没匹配到的机器改用后台节点里的「公开备注」（逗号分隔＝多枚）。例：\n东京 = 2.5Gbps,IPv4,IPv6\n* = 1Gbps,IPv4"
 		}
 	]
 }

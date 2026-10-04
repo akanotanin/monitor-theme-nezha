@@ -31,6 +31,7 @@ import { useStatus } from "@/hooks/use-status";
 import { useWebSocketContext } from "@/hooks/use-websocket-context";
 import { fetchServerGroup, fetchService } from "@/lib/nezha-api";
 import { cn } from "@/lib/utils";
+import { prefetchServerDetail } from "@/monitor/prefetch";
 import type { NezhaServer, ServerGroup } from "@/types/nezha-api";
 
 // 全球地图（连同那份世界轮廓 GeoJSON）改成**按需加载**：这块默认是收起的，
@@ -617,7 +618,10 @@ export default function Servers({
 				<ServerEmptyState />
 			) : filteredServers.length > 0 ? (
 				inline === "1" ? (
-					<section className="flex flex-col gap-2 overflow-x-scroll p-px scrollbar-hidden mt-6 server-inline-list">
+					<section
+						className="flex flex-col gap-2 overflow-x-scroll p-px scrollbar-hidden mt-6 server-inline-list"
+						onPointerEnter={prefetchServerDetail}
+					>
 						{filteredServers.map((serverInfo) => (
 							<ServerCardInline
 								key={serverInfo.id}
@@ -627,7 +631,10 @@ export default function Servers({
 						))}
 					</section>
 				) : (
-					<section className="grid grid-cols-1 gap-2 md:grid-cols-2 mt-6 server-card-list">
+					<section
+						className="grid grid-cols-1 gap-2 md:grid-cols-2 mt-6 server-card-list"
+						onPointerEnter={prefetchServerDetail}
+					>
 						{filteredServers.map((serverInfo) => (
 							<ServerCard
 								key={serverInfo.id}

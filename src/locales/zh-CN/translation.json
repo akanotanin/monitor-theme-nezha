@@ -71,7 +71,8 @@
 		"download": "下载",
 		"lastActive": "最后上报时间",
 		"temperature": "温度",
-		"bootTime": "启动时间"
+		"bootTime": "启动时间",
+		"privateRemark": "私有备注 · 仅自己可见"
 	},
 	"serverDetailChart": {
 		"process": "进程数",
@@ -85,7 +86,9 @@
 		"period7d": "7 天",
 		"period30d": "30 天",
 		"tsdbRequired": "需要开启 TSDB 才能启用历史记录功能",
-		"loginRequired": "请登录后查看"
+		"loginRequired": "请登录后查看",
+		"period90d": "90 天",
+		"period365d": "365 天"
 	},
 	"footer": {
 		"themeBy": "主题-"
@@ -125,7 +128,9 @@
 		"loginRequired": "请登录后查看",
 		"period1d": "1 天",
 		"period7d": "7 天",
-		"period30d": "30 天"
+		"period30d": "30 天",
+		"period90d": "90 天",
+		"period365d": "365 天"
 	},
 	"pwa": {
 		"offlineReady": "应用可以离线使用了",

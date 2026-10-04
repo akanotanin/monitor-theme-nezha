@@ -4,7 +4,7 @@
 import type { MonitorHistory, MonitorMe, MonitorSnapshot } from "./types";
 
 /** 安装目录名，同时也是配置键。改这个值等于让已装实例丢设置。 */
-export const THEME_SHORT = "nezha-dash";
+export const THEME_SHORT = "nezha";
 
 export const endpoints = {
 	/** 实时快照，与 /api/ws 推的是同一个帧。 */

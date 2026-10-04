@@ -20,7 +20,12 @@ import type {
 	SettingResponse,
 } from "@/types/nezha-api";
 import type { ThemeConfig } from "./config";
-import { resolvePlanTags } from "./config";
+import {
+	getThemeConfig,
+	type RemarkPlacement,
+	remarksOnCards,
+	resolvePlanTagsFor,
+} from "./config";
 import type {
 	MonitorHistory,
 	MonitorHistorySample,
@@ -151,14 +156,28 @@ export function platformFromOs(os?: string | null): {
  * 造出上游的 public_note（账单 / 套餐标签）。哪吒是让站长在这条备注里手写 JSON，
  * 极简探针把这些信息存成了节点字段，这里反过来拼成同一个 JSON。
  */
-export function buildPublicNote(node: MonitorNode): string {
+function currentRemarkPlacement(): RemarkPlacement {
+	return getThemeConfig().remarkPlacement;
+}
+
+export function buildPublicNote(
+	node: MonitorNode,
+	/** 「备注显示位置」：卡片那一侧关掉时（`detail` / `none`）不把备注来的芯片塞进 public_note。 */
+	placement: RemarkPlacement = currentRemarkPlacement(),
+): string {
 	const cycle = cycleLabel(node.billing_cycle);
 	// 探针把「价格」存成节点字段（0 = 明确免费，null = 没填），哪吒那边是站长在公开备注里手写：
 	// amount="0" 上游渲染成绿色「免费」，endDate 以 0000-00-00 开头渲染成「永久」（见上游 billingInfo.tsx）
 	const hasPrice = node.price !== null && node.price !== undefined;
 	const hasBilling = Boolean(node.expires_at) || hasPrice || Boolean(cycle);
-	// 标签可能来自主题设置（探针没有带宽/IP 数据源），有标签也要生成 planDataMod
-	const tags = resolvePlanTags(node);
+	// 标签可能来自主题设置，也可能来自 hub 的公开备注（探针没有带宽/IP 数据源）：
+	// 规则匹配到了用规则的，没匹配到用后台那条备注（见 config.ts 的 resolvePlanTagsFor）。
+	// 有标签也要生成 planDataMod。
+	// 「备注显示位置」管的是**备注来的**那几个芯片（带宽 / IPv4 / IPv6 / 灰标签），
+	// 流量配额与账单不属于备注，所以卡片侧关掉时它们照旧显示（见 @/monitor/config）。
+	const tags = remarksOnCards(placement)
+		? resolvePlanTagsFor(node)
+		: { bandwidth: "", ipv4: false, ipv6: false, extra: "" };
 	const hasPlan =
 		Boolean(node.traffic_limit) ||
 		Boolean(node.traffic_mode) ||
@@ -237,6 +256,10 @@ export function toNezhaServer(node: MonitorNode, nowMs: number): NezhaServer {
 		id: node.id,
 		name: node.name,
 		public_note: buildPublicNote(node),
+		// 备注原文原样带过去（不参与 public_note 的标签拼装）：详情页那一块要的是原文，
+		// 拿它按「私有在前、公有在后」拼成合并的一串（见 @/monitor/config 的 remarkChips）。
+		remark: node.remark ?? "",
+		public_remark: node.public_remark ?? "",
 		last_active: isoFromSeconds(node.last_seen),
 		country_code: (node.country ?? "").toUpperCase(),
 		host: {

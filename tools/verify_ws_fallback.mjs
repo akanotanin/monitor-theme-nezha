@@ -6,7 +6,8 @@
 //
 // 用法: node tools/verify_ws_fallback.mjs
 //   一个进程里跑两个场景，同一只 Chrome：
-//     ① 有 WS：列表出来、徽标「在线」、且**没有**开 5 秒兜底轮询（/api/nodes 的间隔仍是 ~10s）
+//     ① 有 WS：列表出来、徽标「在线」、**一条 /api/nodes 都不发**（WS 帧就是数据源），
+//        而且推一帧改过名的数据下去页面立刻跟着变（证明不是停在死缓存上）
 //     ② 把 WS 关掉再刷新：列表**照样出来**、徽标不再写「离线」、/api/nodes 以 ~5s 的节奏在轮询
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -108,12 +109,23 @@ const server = createServer((req, res) => {
 });
 
 let wss = new WebSocketServer({ server, path: "/api/ws" });
+const sockets = new Set();
 const pushFrame = (socket) =>
 	socket.readyState === 1 && socket.send(JSON.stringify(NODES));
+/** 手动推一帧（用来证明「WS 帧还在驱动页面」）。 */
+const broadcast = (payload) => {
+	for (const socket of sockets) {
+		if (socket.readyState === 1) socket.send(JSON.stringify(payload));
+	}
+};
 const wire = (socket) => {
+	sockets.add(socket);
 	pushFrame(socket);
 	const timer = setInterval(() => pushFrame(socket), 2000);
-	socket.on("close", () => clearInterval(timer));
+	socket.on("close", () => {
+		clearInterval(timer);
+		sockets.delete(socket);
+	});
 };
 wss.on("connection", wire);
 await new Promise((r) => server.listen(PORT, "127.0.0.1", r));
@@ -255,9 +267,24 @@ async function run(name, { waitNodes }) {
 // ① 有 WS
 const okRun = await run("① 有 WebSocket", { waitNodes: true });
 check(
-	"WS 正常时不该开兜底轮询（/api/nodes 的最小间隔仍 ≥ 8s）",
-	okRun.minGap >= 8000,
-	`最小间隔 ${Math.round(okRun.minGap)}ms`,
+	"WS 正常时桥接层不再自己拉 /api/nodes（观察窗内 0 次）",
+	okRun.count === 0,
+	`${okRun.count} 次`,
+);
+// 光「没请求」还不够：得证明数据还是活的（WS 帧在驱动页面，而不是停在一份死缓存上）。
+console.log("   → 改一帧推下去，看页面跟不跟");
+NODES.nodes[0].name = "测试机 A·新帧";
+broadcast(NODES);
+let live = false;
+for (let i = 0; i < 25 && !live; i++) {
+	live = Boolean(await js(`document.body.innerText.includes('测试机 A·新帧')`));
+	if (!live) await sleep(200);
+}
+check("WS 帧照样在驱动页面（改过名的那一帧到了）", live);
+check(
+	"而且这期间一条 /api/nodes 都没发（帧就是数据源）",
+	apiNodesAt.length === 0,
+	`${apiNodesAt.length} 次`,
 );
 
 // ② 把 WS 关掉：之后 /api/ws 的升级请求没有 handler，握手失败

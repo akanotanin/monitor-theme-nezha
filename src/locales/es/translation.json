@@ -25,7 +25,8 @@
 		"download": "Bajada",
 		"uptime": "Tiempo de actividad",
 		"mem": "Memoria",
-		"upload": "Subida"
+		"upload": "Subida",
+		"privateRemark": "Nota privada · solo visible para ti"
 	},
 	"serverDetailChart": {
 		"process": "Procesos",
@@ -97,7 +98,9 @@
 		"peakCut": "Peak cut",
 		"period1d": "1 Día",
 		"period7d": "7 Días",
-		"period30d": "30 Días"
+		"period30d": "30 Días",
+		"period90d": "90 Días",
+		"period365d": "365 Días"
 	},
 	"error": {
 		"pageNotFound": "Página no encontrada",

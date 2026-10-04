@@ -12,7 +12,6 @@ import { useSort } from "@/hooks/use-sort";
 import { useStatus } from "@/hooks/use-status";
 import { useTooltip } from "@/hooks/use-tooltip";
 import { useWebSocketContext } from "@/hooks/use-websocket-context";
-import { createServer } from "@/test/fixtures";
 
 class FakeWebSocket {
 	static readonly CONNECTING = 0;
@@ -247,10 +246,38 @@ describe("WebSocketProvider", () => {
 		);
 	}
 
+	/**
+	 * 探针推的帧是 `{admin, nodes}`（与 `/api/nodes` 同一个形状），provider 负责翻成上游的
+	 * `{now, online, servers}` 视图模型 —— 所以这里要喂**探针**的形状，不是上游的。
+	 */
 	function websocketPayload(serverName: string) {
 		return JSON.stringify({
-			now: Date.parse("2025-01-01T00:00:20.000Z"),
-			servers: [createServer({ name: serverName })],
+			admin: false,
+			nodes: [
+				{
+					id: 1,
+					name: serverName,
+					group: "默认",
+					country: "US",
+					os: "Debian GNU/Linux 12 (bookworm)",
+					arch: "x86_64",
+					online: true,
+					public: true,
+					last_seen: Math.floor(Date.now() / 1000),
+					mem_total: 1020526592,
+					disk_total: 10485864448,
+					metrics: {
+						cpu: 12,
+						mem_used: 431800320,
+						mem_total: 1020526592,
+						disk_used: 1524510720,
+						disk_total: 10485864448,
+						net_rx: 867,
+						net_tx: 465,
+						uptime: 318521,
+					},
+				},
+			],
 		});
 	}
 
@@ -277,13 +304,14 @@ describe("WebSocketProvider", () => {
 	it("normalizes missing and non-array server collections", () => {
 		renderWebSocketProvider(<WebSocketProbe />);
 		const socket = FakeWebSocket.instances[0];
-		const now = Date.parse("2025-01-01T00:00:20.000Z");
-
 		act(() => {
 			socket.open();
-			socket.message(JSON.stringify({ now }));
-			socket.message(JSON.stringify({ now, servers: null }));
-			socket.message(JSON.stringify({ now, servers: { invalid: true } }));
+			// 探针的帧少了 nodes、nodes 是 null、nodes 不是数组 —— 三种都该落成「零台服务器」。
+			socket.message(JSON.stringify({ admin: false }));
+			socket.message(JSON.stringify({ admin: false, nodes: null }));
+			socket.message(
+				JSON.stringify({ admin: false, nodes: { invalid: true } }),
+			);
 		});
 
 		expect(screen.getByText("none")).toBeInTheDocument();
@@ -337,13 +365,13 @@ describe("WebSocketProvider", () => {
 		act(() => {
 			socket.open();
 			socket.message("null");
-			socket.message(JSON.stringify({ servers: [] }));
+			socket.message(JSON.stringify([1, 2]));
 		});
 
 		expect(screen.getByTestId("message-count")).toHaveTextContent("0");
 		expect(consoleError).toHaveBeenCalledTimes(2);
 		expect(consoleError).toHaveBeenCalledWith(
-			"Failed to parse WebSocket message:",
+			"Failed to parse frame:",
 			expect.any(TypeError),
 		);
 	});

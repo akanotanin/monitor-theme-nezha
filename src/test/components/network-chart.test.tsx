@@ -5,6 +5,7 @@ import type { ReactElement, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NetworkChart, NetworkChartClient } from "@/components/NetworkChart";
 import type { ChartConfig } from "@/components/ui/chart";
+import { setHistoryDays } from "@/monitor/periods";
 import { createTestQueryClient } from "@/test/utils";
 import type { NezhaMonitor, ServerMonitorChart } from "@/types/nezha-api";
 
@@ -253,6 +254,9 @@ describe("NetworkChartClient", () => {
 	});
 
 	it("shows period loading and honors the forced peak-cut global", async () => {
+		// 那排窗口按 hub 的保留天数生成（见 @/monitor/periods）：要看到「30 天」得先喂一个
+		// 保留 30 天的 hub。默认（没拿到 history_days）按 7 天算，只有「1 天 / 7 天」两档。
+		setHistoryDays(30);
 		const user = userEvent.setup();
 		Object.assign(window, { ForcePeakCutEnabled: true });
 		const onPeriodChange = vi.fn();
@@ -278,6 +282,7 @@ describe("NetworkChartClient", () => {
 
 		await user.click(screen.getByText("monitor.period30d"));
 		expect(onPeriodChange).toHaveBeenCalledWith("30d");
+		setHistoryDays(undefined);
 
 		await user.click(screen.getByRole("switch", { name: "monitor.peakCut" }));
 		expect(

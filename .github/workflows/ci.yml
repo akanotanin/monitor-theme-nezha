@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    # 纯文档改动没有编译器或 linter 能检查的东西
+    paths-ignore: ["**.md", "docs/**", "LICENSE"]
+  pull_request:
+    paths-ignore: ["**.md", "docs/**", "LICENSE"]
+
+permissions:
+  contents: read
+
+# 同一 ref 上新的 push 会顶掉还在跑的那次
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: 清单与默认值（theme.json ⟷ config.ts）
+        run: pnpm check:manifest
+      - name: 代码风格与静态检查
+        run: pnpm check
+      - name: 单元测试
+        run: pnpm test
+      - name: 类型检查 + 构建
+        run: pnpm build

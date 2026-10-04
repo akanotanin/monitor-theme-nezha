@@ -93,7 +93,7 @@ describe("ServerDetailOverview", () => {
 		expect(screen.getAllByAltText("BackIcon").length).toBeGreaterThan(0);
 	});
 
-	it("renders server identity, hardware, traffic, and temperature details", async () => {
+	it("renders server identity, hardware, and traffic details", async () => {
 		const user = userEvent.setup();
 		sessionStorage.setItem("fromMainPage", "true");
 		seedWebSocketData({
@@ -101,12 +101,6 @@ describe("ServerDetailOverview", () => {
 				id: 7,
 				name: "edge-detail",
 				country_code: "us",
-				host: {
-					gpu: ["NVIDIA T4"],
-				},
-				state: {
-					temperatures: [{ Name: "CPU Core", Temperature: 55.5 }],
-				},
 			}),
 		});
 
@@ -124,15 +118,8 @@ describe("ServerDetailOverview", () => {
 		expect(screen.getByText("US")).toBeInTheDocument();
 		expect(screen.getByText(/linux - 6.8/)).toBeInTheDocument();
 		expect(screen.getByText(/AMD EPYC/)).toBeInTheDocument();
-		expect(screen.getByText("NVIDIA T4")).toBeInTheDocument();
 		expect(screen.getByText("2.00 GiB")).toBeInTheDocument();
 		expect(screen.getByText("1.00 GiB")).toBeInTheDocument();
-
-		await user.click(
-			screen.getByRole("button", { name: /serverDetail.temperature/ }),
-		);
-		expect(screen.getByText("CPU Core")).toBeInTheDocument();
-		expect(screen.getByText(/55.50 °C/)).toBeInTheDocument();
 
 		await user.click(screen.getByText("edge-detail"));
 		expect(screen.getByText("/")).toBeInTheDocument();

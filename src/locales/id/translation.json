@@ -76,7 +76,8 @@
 		"download": "Unduh",
 		"lastActive": "Waktu aktif terakhir",
 		"temperature": "Suhu",
-		"bootTime": "Waktu boot"
+		"bootTime": "Waktu boot",
+		"privateRemark": "Catatan pribadi · hanya terlihat oleh Anda"
 	},
 	"serverDetailChart": {
 		"process": "Proses",
@@ -90,7 +91,9 @@
 		"period7d": "7 Hari",
 		"period30d": "30 Hari",
 		"tsdbRequired": "Aktifkan TSDB untuk menggunakan data historis",
-		"loginRequired": "Silakan masuk untuk melihat"
+		"loginRequired": "Silakan masuk untuk melihat",
+		"period90d": "90 Hari",
+		"period365d": "365 Hari"
 	},
 	"footer": {
 		"themeBy": "Tema oleh "
@@ -124,7 +127,9 @@
 		"loginRequired": "Silakan masuk untuk melihat",
 		"period1d": "1 Hari",
 		"period7d": "7 Hari",
-		"period30d": "30 Hari"
+		"period30d": "30 Hari",
+		"period90d": "90 Hari",
+		"period365d": "365 Hari"
 	},
 	"pwa": {
 		"offlineReady": "Aplikasi siap bekerja luring",

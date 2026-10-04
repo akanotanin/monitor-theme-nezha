@@ -71,7 +71,8 @@
 		"download": "Recebimento",
 		"lastActive": "Ultima atividade",
 		"temperature": "Temperatura",
-		"bootTime": "Tempo de inicio"
+		"bootTime": "Tempo de inicio",
+		"privateRemark": "Nota privada · visível apenas para você"
 	},
 	"serverDetailChart": {
 		"process": "Processo",
@@ -85,7 +86,9 @@
 		"period7d": "7 Dias",
 		"period30d": "30 Dias",
 		"tsdbRequired": "Habilite o TSDB para usar dados históricos",
-		"loginRequired": "Por favor entre para visualizar"
+		"loginRequired": "Por favor entre para visualizar",
+		"period90d": "90 Dias",
+		"period365d": "365 Dias"
 	},
 	"footer": {
 		"themeBy": "Tema por "
@@ -124,7 +127,9 @@
 		"loginRequired": "Por favor entre para visualizar",
 		"period1d": "1 Dia",
 		"period7d": "7 Dias",
-		"period30d": "30 Dias"
+		"period30d": "30 Dias",
+		"period90d": "90 Dias",
+		"period365d": "365 Dias"
 	},
 	"pwa": {
 		"offlineReady": "Aplicativo pronto para funcionar offline",

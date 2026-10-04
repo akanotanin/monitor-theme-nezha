@@ -37,6 +37,7 @@ import {
 	formatRelativeTime,
 	formatTime,
 } from "@/lib/utils";
+import { usePeriods } from "@/monitor/periods";
 import type {
 	MetricPeriod,
 	NezhaServer,
@@ -89,14 +90,17 @@ function PeriodSelector({
 }) {
 	const { t } = useTranslation();
 
+	// 「实时」常驻；后面那几档按 hub 的保留天数生成（见 @/monitor/periods）。
+	const historyPeriods = usePeriods();
 	const periods = useMemo<{ value: ChartPeriod; label: string }[]>(
 		() => [
 			{ value: "realtime", label: t("serverDetailChart.realtime") },
-			{ value: "1d", label: t("serverDetailChart.period1d") },
-			{ value: "7d", label: t("serverDetailChart.period7d") },
-			{ value: "30d", label: t("serverDetailChart.period30d") },
+			...historyPeriods.map((value) => ({
+				value,
+				label: t(`serverDetailChart.period${value}`),
+			})),
 		],
-		[t],
+		[historyPeriods, t],
 	);
 	const periodValues = useMemo(
 		() => periods.map((period) => period.value),

@@ -28,7 +28,14 @@ export interface BadgeProps
 
 function Badge({ className, variant, ...props }: BadgeProps) {
 	return (
-		<div className={cn(badgeVariants({ variant }), className)} {...props} />
+		// data-slot / data-variant：给护栏用的**结构锚点**（它不该去认 Tailwind 类名——
+		// 换皮肤、调字号都会让类名变，锚点不该跟着变）。
+		<div
+			data-slot="badge"
+			data-variant={variant}
+			className={cn(badgeVariants({ variant }), className)}
+			{...props}
+		/>
 	);
 }
 

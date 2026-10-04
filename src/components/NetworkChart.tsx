@@ -40,6 +40,7 @@ import {
 	type MonitorPeriod,
 } from "@/lib/nezha-api";
 import { cn, formatTime } from "@/lib/utils";
+import { usePeriods } from "@/monitor/periods";
 import type { NezhaMonitor, ServerMonitorChart } from "@/types/nezha-api";
 import NetworkChartLoading from "./NetworkChartLoading";
 import { Label } from "./ui/label";
@@ -250,13 +251,13 @@ export const NetworkChartClient = React.memo(function NetworkChart({
 	const [showPeriodLoading, setShowPeriodLoading] = React.useState(false);
 	const loadingStartedAtRef = React.useRef<number | null>(null);
 
+	// 哪几档出现由 hub 的保留天数决定（见 @/monitor/periods）：只留 7 天的 hub 上不该摆出
+	// 「30 天」那种空窗口，留 365 天的 hub 上则多出 90 天与 365 天两档。
+	const periods = usePeriods();
 	const TIME_RANGE_OPTIONS = useMemo<{ value: MonitorPeriod; label: string }[]>(
-		() => [
-			{ value: "1d", label: t("monitor.period1d") },
-			{ value: "7d", label: t("monitor.period7d") },
-			{ value: "30d", label: t("monitor.period30d") },
-		],
-		[t],
+		() =>
+			periods.map((value) => ({ value, label: t(`monitor.period${value}`) })),
+		[periods, t],
 	);
 	const timeRangeValues = useMemo(
 		() => TIME_RANGE_OPTIONS.map((option) => option.value),

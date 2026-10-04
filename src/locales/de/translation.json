@@ -35,7 +35,8 @@
 		"region": "Region",
 		"system": "System",
 		"lastActive": "Letzte Aktivität",
-		"temperature": "Temperatur"
+		"temperature": "Temperatur",
+		"privateRemark": "Private Notiz · nur für dich sichtbar"
 	},
 	"theme": {
 		"system": "Folgen Sie dem System",
@@ -51,7 +52,9 @@
 		"peakCut": "Peak cut",
 		"period1d": "1 Tag",
 		"period7d": "7 Tage",
-		"period30d": "30 Tage"
+		"period30d": "30 Tage",
+		"period90d": "90 Tage",
+		"period365d": "365 Tage"
 	},
 	"billingInfo": {
 		"error": "Fehler",

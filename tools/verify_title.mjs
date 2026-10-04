@@ -92,11 +92,15 @@ const NODES = { nodes: [node(1, "节点一", "东京"), node(2, "节点二", "")
 // React 早就写好了真站名，那条迟到的若还去写，标题就会变成这个过期值。
 let titleProbeDelay = 0;
 let titleProbeHits = 0;
+// 整站所有 /api/me（含 React 那条）：冷启动只该有一条 —— 早跑脚本先问过，
+// 桥接层接过来复用（见 src/monitor/bridge.ts 的 fetchMeOnce）。
 let titleProbeStaleName = null;
+let meHits = 0;
 const server = createServer((req, res) => {
 	const path = new URL(req.url, `http://127.0.0.1:${PORT}`).pathname;
 	if (path.startsWith("/api/")) {
 		if (path === "/api/me") {
+			meHits++;
 			const isProbe = req.url.includes("theme-title");
 			if (isProbe) titleProbeHits++;
 			const name = isProbe && titleProbeStaleName ? titleProbeStaleName : SITE;
@@ -263,7 +267,7 @@ await send("Page.addScriptToEvaluateOnNewDocument", {
 let pass = 0,
 	fail = 0;
 const check = (name, ok, extra = "") => {
-	console.log(`${ok ? "PASS" : "FAIL"}  ${name}${extra ? " — " + extra : ""}`);
+	console.log(`${ok ? "PASS" : "FAIL"}  ${name}${extra ? ` — ${extra}` : ""}`);
 	if (ok) pass++;
 	else fail++;
 };
@@ -328,6 +332,12 @@ if (!REAL_HUB)
 		(await probeSource()) === "fetch",
 		`来源=${(await probeSource()) || "—"}`,
 	);
+// 只打印不判定：冷启动这里就是**两条** /api/me（早跑脚本一条 + React 一条）—— 刻意不合并，
+// 理由见 public/nezha-title-probe.js 与 src/monitor/bridge.ts 里那段注释（合并会把首屏挂在
+// 早跑脚本上，也拿掉下面「迟到的响应不许改标题」这条护栏的前提）。数字摆在这里，别再"顺手优化"。
+console.log(
+	`   冷启动的 /api/me：共 ${meHits} 条（其中早跑脚本 ${titleProbeHits} 条）`,
+);
 const probesAfterFirstVisit = titleProbeHits;
 
 // 二、刷新：这次 localStorage 里已经有站名了，首帧就该是真站名——全程零跳变。

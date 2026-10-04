@@ -13,7 +13,7 @@
  */
 
 /** 上次「真的加载成功」的图标地址；public/nezha-icon-probe.js 读的是同一个键。 */
-export const ICON_CACHE_KEY = "nezha-dash:site_icon";
+export const ICON_CACHE_KEY = "nezha:site_icon";
 
 /** 主题自带那张：站长没设图标、或者设的地址取不到时退到它。 */
 export const FALLBACK_ICON = "/favicon.svg";

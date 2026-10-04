@@ -1,0 +1,3 @@
+# 仓库统一用 LF 存文本（Windows 上 core.autocrlf 会把它来回换一遍，diff 里全是行尾噪声）。
+# 二进制文件由 text=auto 的自动判定放过。
+* text=auto eol=lf

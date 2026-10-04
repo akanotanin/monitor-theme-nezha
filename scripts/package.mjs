@@ -16,6 +16,10 @@ import {
 execFileSync(process.execPath, ["scripts/check-defaults.mjs"], {
 	stdio: "inherit",
 });
+// 清单本身也要能画出来：标题挨着 / select 默认值不在 options 里 / url 与仓库名不一致
+execFileSync(process.execPath, ["scripts/check-manifest.mjs"], {
+	stdio: "inherit",
+});
 
 const meta = JSON.parse(readFileSync("theme.json", "utf8"));
 if (!/^[A-Za-z0-9_-]+$/.test(meta.short || ""))
@@ -23,6 +27,8 @@ if (!/^[A-Za-z0-9_-]+$/.test(meta.short || ""))
 if (!existsSync("dist/index.html"))
 	throw new Error("缺少 dist/index.html，先跑 pnpm build");
 if (!existsSync("LICENSE")) throw new Error("缺少 LICENSE");
+// 包内分发了 flag-icons（MIT）与 font-logos 的字体文件，许可原文必须跟着走
+if (!existsSync("THIRD-PARTY.md")) throw new Error("缺少 THIRD-PARTY.md");
 
 /**
  * 别把旧产物打进包里：源码比 dist 新就直接报错。
@@ -53,9 +59,9 @@ if (srcMtime > distMtime) {
 rmSync("release", { recursive: true, force: true });
 const staging = "release/staging";
 mkdirSync(staging, { recursive: true });
-for (const file of ["theme.json", "LICENSE", "dist"])
+for (const file of ["theme.json", "LICENSE", "THIRD-PARTY.md", "dist"])
 	cpSync(file, `${staging}/${file}`, { recursive: true });
-const files = ["theme.json", "LICENSE", "dist"];
+const files = ["theme.json", "LICENSE", "THIRD-PARTY.md", "dist"];
 if (existsSync("preview.png")) {
 	cpSync("preview.png", `${staging}/preview.png`);
 	files.push("preview.png");

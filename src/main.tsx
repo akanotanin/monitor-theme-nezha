@@ -11,9 +11,8 @@ import { SortProvider } from "./context/sort-provider";
 import { StatusProvider } from "./context/status-provider";
 import { TooltipProvider } from "./context/tooltip-provider";
 import { WebSocketProvider } from "./context/websocket-provider";
-// i18n.js 是上游保留的 JS 文件（没有类型声明）
-// @ts-expect-error 上游 i18n.js 无 d.ts
-import i18n from "./i18n";
+// 词条按需加载：默认语言与兜底语言在包里，其余 12 种拉 chunk（见 src/i18n.js）
+import i18n, { ensureLocale } from "./i18n";
 import "./index.css";
 import { applyWindowGlobals, loadThemeConfig } from "./monitor/config";
 import { endpoints } from "./monitor/endpoints";
@@ -43,8 +42,15 @@ async function boot() {
 
 	// 上游是 App.tsx 从哪吒后端设置里取 language 再 changeLanguage；探针没有这份站点设置，
 	// 改从主题设置取。访客在页头自己切过语言（localStorage 里有值）就以访客为准 —— 同上游判断。
-	if (config.language && !localStorage.getItem("language")) {
-		await i18n.changeLanguage(config.language);
+	const preferred =
+		config.language && !localStorage.getItem("language")
+			? config.language
+			: i18n.language;
+	// ★先把要用的那种词条拉进来（其余 12 种按需加载，见 src/i18n.js），再挂载 React ——
+	// 否则首帧会用兜底语言（英语）渲染一遍、下一帧才跳成中文。拉不到就用兜底语言，不拦页面。
+	await ensureLocale(preferred);
+	if (preferred !== i18n.language) {
+		await i18n.changeLanguage(preferred);
 	}
 
 	ReactDOM.createRoot(rootElement as HTMLElement).render(

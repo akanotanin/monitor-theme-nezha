@@ -11,6 +11,7 @@
 		"download": "Téléchargement"
 	},
 	"serverDetail": {
-		"download": "Téléchargement"
+		"download": "Téléchargement",
+		"privateRemark": "Note privée · visible par vous uniquement"
 	}
 }

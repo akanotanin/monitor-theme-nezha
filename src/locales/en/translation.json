@@ -71,7 +71,8 @@
 		"download": "Download",
 		"lastActive": "Last active time",
 		"temperature": "Temperature",
-		"bootTime": "Boot time"
+		"bootTime": "Boot time",
+		"privateRemark": "Private note · visible only to you"
 	},
 	"serverDetailChart": {
 		"process": "Process",
@@ -85,7 +86,9 @@
 		"period7d": "7 Days",
 		"period30d": "30 Days",
 		"tsdbRequired": "Enable TSDB to use historical data",
-		"loginRequired": "Please login to view"
+		"loginRequired": "Please login to view",
+		"period90d": "90 Days",
+		"period365d": "365 Days"
 	},
 	"footer": {
 		"themeBy": "Theme by "
@@ -131,7 +134,9 @@
 		"loginRequired": "Please login to view",
 		"period1d": "1 Day",
 		"period7d": "7 Days",
-		"period30d": "30 Days"
+		"period30d": "30 Days",
+		"period90d": "90 Days",
+		"period365d": "365 Days"
 	},
 	"pwa": {
 		"offlineReady": "App ready to work offline",

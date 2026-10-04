@@ -1,5 +1,6 @@
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
+import { Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useWebSocketContext } from "@/hooks/use-websocket-context";
 import { formatBytes } from "@/lib/format";
 import { cn, formatNezhaInfo } from "@/lib/utils";
+import { getThemeConfig, remarkChips, remarksOnDetail } from "@/monitor/config";
 import NumericText from "./NumericText";
 import {
 	Tooltip,
@@ -88,6 +90,14 @@ export default function ServerDetailOverview({
 		last_active_time_string,
 		boot_time_string,
 	} = formatNezhaInfo(nezhaWsData.now, server);
+
+	// 备注（见 @/monitor/config 的 remarkChips）：**私有在前（仅自己可见）、公有在后**，都拆成
+	// 一枚枚小卡片。hub 只把私有备注下发给登录的管理员，所以访客在这块里看到的只有公有那几枚。
+	// 「备注显示位置」决定这一页摊不摊（见 theme.json 的那个字段）。
+	const chips = remarkChips(server);
+	const detailChips = remarksOnDetail(getThemeConfig().remarkPlacement)
+		? chips
+		: [];
 
 	const customBackgroundImage =
 		(window.CustomBackgroundImage as string) !== ""
@@ -350,6 +360,33 @@ export default function ServerDetailOverview({
 					</CardContent>
 				</Card>
 			</section>
+
+			{detailChips.length > 0 && (
+				/* 整页详情那一块：**私有 + 公有合并成一串小卡片**，与 jikasei 1.19.1 同一套版式。
+				   私有那几枚用描边 + 锁图标标成「仅自己可见」（hub 只把它下发给登录的管理员，所以
+				   访客在这一块里只会看到公有那几枚——不需要两套分支）。
+				   ★不加容器：没有底、没有描边、没有内边距，小卡片直接落在页面上（早先那层框是给
+				   整段文字当底用的，改成小卡片之后它只是多余的一圈边）。没写备注时零占位。 */
+				<section
+					data-remark-block
+					className="mt-3 flex min-w-0 flex-wrap items-center gap-1"
+				>
+					{detailChips.map((c, i) => (
+						<Badge
+							key={`${i}-${c.text}`}
+							variant={c.own ? "outline" : "secondary"}
+							className={
+								"min-w-0 shrink font-normal " +
+								(c.own ? "gap-1 text-muted-foreground" : "")
+							}
+							title={c.own ? t("serverDetail.privateRemark") : c.text}
+						>
+							{c.own && <Lock className="size-3 shrink-0" aria-hidden />}
+							<span className="min-w-0 truncate">{c.text}</span>
+						</Badge>
+					))}
+				</section>
+			)}
 		</div>
 	);
 }

@@ -21,7 +21,8 @@ import type {
 	SettingResponse,
 } from "@/types/nezha-api";
 
-export type MonitorPeriod = "1d" | "7d" | "30d";
+/** 与 MetricPeriod 同一排窗口；哪几档出现由 hub 的保留天数决定（见 monitor/periods.ts）。 */
+export type MonitorPeriod = "1d" | "7d" | "30d" | "90d" | "365d";
 
 export const fetchServerGroup = (): Promise<ServerGroupResponse> =>
 	bridgeFetchServerGroup();

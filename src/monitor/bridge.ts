@@ -31,13 +31,9 @@ import {
 	toServerGroups,
 	toSetting,
 } from "./mapping";
+import { periodHours, setHistoryDays } from "./periods";
 import type { MonitorHistory, MonitorMe, MonitorNode } from "./types";
 
-const PERIOD_HOURS: Record<MetricPeriod, number> = {
-	"1d": 24,
-	"7d": 168,
-	"30d": 720,
-};
 const SERVICE_LOOKBACK_HOURS = 720;
 const HISTORY_TTL_MS = 20_000;
 /**
@@ -53,8 +49,30 @@ const SERVICE_CONCURRENCY = 4;
 
 let snapshotCache: { at: number; nodes: MonitorNode[] } | null = null;
 
+/**
+ * 最近一帧**实时数据**（WS 帧，或 WS 断了时那条 HTTP 兜底轮询拿到的帧 —— 两者是同一份数据）。
+ *
+ * 为什么要有它：`/api/nodes` 与 `/api/ws` 推的是同一个 `{admin, nodes}`，WS 连着的时候
+ * 页面本来就有最新的节点列表，可首页那条 10 秒一次的「有没有延迟监控数据」轮询会顺着
+ * `snapshot()` 再回源一次 `/api/nodes`（实测 WS 正常时 25 秒内仍多打 2 次）。
+ * 把帧记下来之后，所有要「当前节点列表」的地方都读它，WS 正常时一条 HTTP 都不发。
+ */
+let liveFrame: { at: number; nodes: MonitorNode[] } | null = null;
+
+/** 兜底：帧停在这么久以前就不再当数据源（WS 与轮询都断了的时候）。 */
+const LIVE_FRAME_TTL_MS = 300_000;
+
+/** websocket-provider 每收到一帧就喂进来（见 src/context/websocket-provider.tsx）。 */
+export function noteLiveFrame(nodes: MonitorNode[] | undefined): void {
+	if (!nodes || nodes.length === 0) return;
+	liveFrame = { at: Date.now(), nodes };
+}
+
 async function snapshot(force = false): Promise<MonitorNode[]> {
 	const now = Date.now();
+	// 有新鲜的实时帧就用它：它只会比 HTTP 那份更新，`force`（要「当前」的分组）也没必要回源。
+	if (liveFrame && now - liveFrame.at < LIVE_FRAME_TTL_MS)
+		return liveFrame.nodes;
 	if (!force && snapshotCache && now - snapshotCache.at < SNAPSHOT_TTL_MS) {
 		return snapshotCache.nodes;
 	}
@@ -68,6 +86,11 @@ async function snapshot(force = false): Promise<MonitorNode[]> {
  * 同一次加载里 `/api/me` 会被两条 query 同时打（Header 的「站点设置」与 DashboardLink 的
  * 「登录态」），冷启动时就是两条并发且一模一样的请求。这里只合并**并发**的那一份：
  * 调用方各自决定怎么处理失败（设置那边退默认值、登录态那条要抛错），所以不缓存失败结果。
+ *
+ * ★标题早跑脚本（public/nezha-title-probe.js）那条 /api/me **刻意不接过来用**（试过，已回退）：
+ * 接过来等于把首屏的设置/登录态挂在那个早跑脚本上，它慢或挂了会把首屏一起拖住；而且
+ * 「迟到的响应不许改标题」那条护栏赖以成立的前提是两条请求各自独立。代价只是冷启动多一条
+ * 几百字节的请求 —— 见 tools/verify_title.mjs 里打出来的两条 /api/me 计数。
  */
 let meInflight: Promise<MonitorMe> | null = null;
 
@@ -82,7 +105,11 @@ function fetchMeOnce(): Promise<MonitorMe> {
 
 async function meOrEmpty(): Promise<MonitorMe> {
 	try {
-		return await fetchMeOnce();
+		const me = await fetchMeOnce();
+		// 保留天数在这里落到 periods 那个小 store：时间范围那排按钮按它生成（见 periods.ts）。
+		// 老 hub 没有这个字段 → 传 undefined → 那边按 7 天算。
+		setHistoryDays(me.history_days);
+		return me;
 	} catch {
 		return {};
 	}
@@ -193,7 +220,7 @@ export async function bridgeFetchServerMetrics(
 	period: MetricPeriod = "1d",
 ): Promise<ServerMetricsResponse> {
 	const [history, node] = await Promise.all([
-		historyFor(serverId, PERIOD_HOURS[period] ?? 24, "metrics"),
+		historyFor(serverId, periodHours(period), "metrics"),
 		nodeById(serverId),
 	]);
 	return historyToServerMetrics(
@@ -209,7 +236,7 @@ export async function bridgeFetchMonitor(
 	period: MetricPeriod = "1d",
 ): Promise<MonitorResponse> {
 	const [history, node] = await Promise.all([
-		historyFor(serverId, PERIOD_HOURS[period] ?? 24, "ping"),
+		historyFor(serverId, periodHours(period), "ping"),
 		nodeById(serverId),
 	]);
 	const fallback: MonitorNode = node ?? {
