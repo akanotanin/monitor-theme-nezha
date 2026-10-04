@@ -322,6 +322,26 @@ async function remarkBlockFacts() {
 	return JSON.parse(raw ?? "{}");
 }
 
+/**
+ * 卡片上那排**私有备注**（`[data-card-remarks]`）：hub 只把 `remark` 下发给登录的管理员，
+ * 所以访客那边整块不渲染（零占位）。同样按结构定位，不认 Tailwind 类名。
+ */
+async function cardRemarksFacts() {
+	const raw = await evalJS(`JSON.stringify((() => {
+		const s = document.querySelector('[data-card-remarks]')
+		if (!s) return { block: false, chips: [], locks: [], titles: [], justify: '' }
+		const cs = [...s.querySelectorAll('p')]
+		return {
+			block: true,
+			chips: cs.map((c) => c.innerText.trim()),
+			locks: cs.map((c) => !!c.querySelector('svg')),
+			titles: cs.map((c) => c.getAttribute('title') || ''),
+			justify: getComputedStyle(s).justifyContent,
+		}
+	})())`);
+	return JSON.parse(raw ?? "{}");
+}
+
 /* ── ① 卡片底部标签：规则优先、hub 兜底 ───────────────────────────────── */
 console.log(
 	"\n── 卡片底部标签：主题设置的规则优先，没匹配到的用 hub 的公开备注 ──",
@@ -449,8 +469,15 @@ console.log(
 	// 访客（hub 不下发私有备注）：同一套版式，只剩公有那几枚
 	privateNote = "";
 	publicNote = HUB_REMARK;
+	await go("/", "remark-visitor-card", { h: 900 });
+	const visCard = await cardRemarksFacts();
 	await go("/server/1", "remark-visitor", { h: 1100 });
 	const vis = await remarkBlockFacts();
+	check(
+		"访客视角：卡片上那排私有备注整块不渲染（零占位）",
+		visCard.block === false && visCard.chips.length === 0,
+		JSON.stringify(visCard),
+	);
 	check(
 		"访客视角（没有私有备注字段）：只剩公有那几枚，且都是实心样式",
 		JSON.stringify(vis.chips) ===
@@ -474,6 +501,20 @@ console.log(
 	remarkPlacement = "both";
 	await go("/", "place-both", { h: 900 });
 	const bothCard = await facts();
+	const bothCardOwn = await cardRemarksFacts();
+	// 紧凑列表视图（ServerCardInline）：私有那排也得在，且与标签行同一侧（靠左，不是卡片视图的居中）
+	await evalJS(`localStorage.setItem("inline", "1")`);
+	await go("/", "place-both-inline", { w: 1600, h: 900 });
+	const bothInlineOwn = await cardRemarksFacts();
+	await evalJS(`localStorage.removeItem("inline")`);
+	check(
+		"两边都摊（默认）：紧凑列表里私有那排也在，靠左（与标签行同侧）",
+		bothInlineOwn.block === true &&
+			bothInlineOwn.chips.length === 1 &&
+			bothInlineOwn.justify === "flex-start",
+		JSON.stringify(bothInlineOwn),
+	);
+
 	await go("/server/1", "place-both-detail", { h: 1100 });
 	const bothDetail = await remarkBlockFacts();
 	check(
@@ -483,10 +524,21 @@ console.log(
 			bothDetail.chips.length === 4,
 		JSON.stringify({ card: bothCard.chips, detail: bothDetail.chips }),
 	);
+	check(
+		"两边都摊（默认）：卡片上也摊私有那排（1 枚、带锁、挂「仅自己可见」提示）",
+		bothCardOwn.block === true &&
+			JSON.stringify(bothCardOwn.chips) ===
+				JSON.stringify(["仅自己可见的一条"]) &&
+			bothCardOwn.locks.every(Boolean) &&
+			/仅自己可见/.test(bothCardOwn.titles[0] || "") &&
+			bothCardOwn.justify === "center",
+		JSON.stringify(bothCardOwn),
+	);
 	// ② 只在卡片
 	remarkPlacement = "card";
 	await go("/", "place-card", { h: 900 });
 	const cardOnly = await facts();
+	const cardOnlyOwn = await cardRemarksFacts();
 	await go("/server/1", "place-card-detail", { h: 1100 });
 	const cardOnlyDetail = await remarkBlockFacts();
 	check(
@@ -496,16 +548,27 @@ console.log(
 			cardOnlyDetail.chips.length === 0,
 		JSON.stringify({ card: cardOnly.chips, detail: cardOnlyDetail.chips }),
 	);
+	check(
+		"只在卡片：私有那排也在卡片上（详情页那一侧整个不出现）",
+		cardOnlyOwn.block === true && cardOnlyOwn.chips.length === 1,
+		JSON.stringify(cardOnlyOwn),
+	);
 	// ③ 只在详情页：卡片底部那排不再有备注芯片，但流量与账单照旧
 	remarkPlacement = "detail";
 	await go("/", "place-detail", { h: 900 });
 	const detailOnly = await facts();
+	const detailOnlyOwn = await cardRemarksFacts();
 	await go("/server/1", "place-detail-detail", { h: 1100 });
 	const detailOnlyDetail = await remarkBlockFacts();
 	check(
 		"只在详情页：卡片底部那排不再有备注芯片（三枚一枚不剩）",
 		CARD_CHIPS.every((c) => !detailOnly.chips.includes(c)),
 		JSON.stringify(detailOnly.chips),
+	);
+	check(
+		"只在详情页：卡片上私有那排也不渲染（与公开那几枚同一个开关）",
+		detailOnlyOwn.block === false && detailOnlyOwn.chips.length === 0,
+		JSON.stringify(detailOnlyOwn),
 	);
 	check(
 		"只在详情页：流量与账单芯片照旧（它们不是备注）",
@@ -521,6 +584,7 @@ console.log(
 	remarkPlacement = "none";
 	await go("/", "place-none", { h: 900 });
 	const noneCard = await facts();
+	const noneCardOwn = await cardRemarksFacts();
 	await go("/server/1", "place-none-detail", { h: 1100 });
 	const noneDetail = await remarkBlockFacts();
 	check(
@@ -530,14 +594,20 @@ console.log(
 			noneDetail.chips.length === 0,
 		JSON.stringify({ card: noneCard.chips, detail: noneDetail.chips }),
 	);
+	check(
+		"都不显示：卡片上私有那排也不渲染",
+		noneCardOwn.block === false,
+		JSON.stringify(noneCardOwn),
+	);
 	// ⑤ 不认识的取值 → 回落「两边都摊」（老站点配置 / 手改库都不该让备注消失）
 	remarkPlacement = "everywhere";
 	await go("/", "place-junk", { h: 900 });
 	const junk = await facts();
+	const junkOwn = await cardRemarksFacts();
 	check(
 		"取值不认识 → 回落两边都摊（备注不会凭空消失）",
-		CARD_CHIPS.every((c) => junk.chips.includes(c)),
-		JSON.stringify(junk.chips),
+		CARD_CHIPS.every((c) => junk.chips.includes(c)) && junkOwn.block === true,
+		JSON.stringify({ chips: junk.chips, own: junkOwn.chips }),
 	);
 
 	remarkPlacement = "both";

@@ -365,9 +365,13 @@ const server = createServer((req, res) => {
 	if (path.startsWith("/api/")) {
 		let body = {};
 		if (path === "/api/me") {
+			// ★演示数据里带**私有备注**（只有登录的管理员拿得到），所以页头也得是登录态 ——
+			// 否则图上会出现「写着『登录』却看得见仅自己可见的备注」这种自相矛盾。
+			// 上游判断登录看的是「id 非 0」且 `document.cookie` 非空，所以这条得带个 cookie。
+			res.setHeader("Set-Cookie", "nezha_token=preview; Path=/; SameSite=Lax");
 			body = {
-				authed: false,
-				github: false,
+				authed: true,
+				github: "akanotanin",
 				public_page: true,
 				site: "",
 				site_name: "Monitor Nezha",

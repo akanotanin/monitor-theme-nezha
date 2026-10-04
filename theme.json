@@ -2,7 +2,7 @@
 	"name": "Monitor Nezha",
 	"short": "nezha",
 	"description": "极简探针（Monitor）的哪吒监控风格主题，前身来自 hamster1963/nezha-dash-v2。",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"author": "移植到 Monitor by akanotanin",
 	"url": "https://github.com/akanotanin/monitor-theme-nezha",
 	"config": [
@@ -293,7 +293,7 @@
 					"label": "都不显示"
 				}
 			],
-			"help": "卡片＝卡片底部那排标签（含紧凑列表）；详情页＝点进去的那一整页。备注在后台节点里填（公开给访客、私有给自己），逗号分隔＝多枚标签，留空＝不显示。"
+			"help": "卡片＝卡片底部那排标签（含紧凑列表；私有备注在卡片上单独一排、带锁，只有登录的管理员看得到）；详情页＝点进去的那一整页。备注在后台节点里填（公开给访客、私有给自己），逗号分隔＝多枚标签，留空＝不显示。"
 		},
 		{
 			"type": "title",

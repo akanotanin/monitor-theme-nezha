@@ -13,6 +13,7 @@ import { saveMainPageScrollPosition } from "@/lib/navigation";
 import { cn, formatNezhaInfo, parsePublicNote } from "@/lib/utils";
 import type { NezhaServer } from "@/types/nezha-api";
 import BillingInfo from "./billingInfo";
+import { CardRemarks } from "./CardRemarks";
 import PlanInfo from "./PlanInfo";
 import { Card } from "./ui/card";
 import { Separator } from "./ui/separator";
@@ -198,6 +199,7 @@ function ServerCardInline({
 					{parsedData?.planDataMod && (
 						<PlanInfo parsedData={parsedData} align="start" />
 					)}
+					<CardRemarks serverInfo={serverInfo} align="start" />
 				</div>
 			</Card>
 		</section>
@@ -242,6 +244,7 @@ function ServerCardInline({
 			{parsedData?.planDataMod && (
 				<PlanInfo parsedData={parsedData} align="start" />
 			)}
+			<CardRemarks serverInfo={serverInfo} align="start" />
 		</Card>
 	);
 }
