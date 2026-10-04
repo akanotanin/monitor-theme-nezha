@@ -7,18 +7,6 @@
 实时快照走 WebSocket（连不上自动回退到 `/api/nodes` 轮询），历史曲线与延迟监控走 `/api/nodes/{id}/metrics`；
 字体、国旗与系统图标都打进包里，不依赖第三方 CDN。
 
-## 预览
-
-<p align="center">
-  <img src="docs/preview-inline.png" width="48%" alt="紧凑列表视图">
-  <img src="docs/preview-dark.png" width="48%" alt="深色主题">
-</p>
-<p align="center">
-  <img src="docs/preview-detail.png" width="48%" alt="节点详情">
-  <img src="docs/preview-features.png" width="48%" alt="全球地图与延迟监控">
-</p>
-
-
 ## 主要功能
 
 - **卡片与紧凑列表双视图**：卡片视图排价格、剩余天数、资源进度与上下行速率；紧凑列表把同一批信息压成一行，窄屏自动单列。
